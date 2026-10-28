@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0f172a">
-<title>CSS NC II - Assessment Portal</title>
+<title>CSS NC II - Assessment Portal v3.0</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -114,7 +114,7 @@ input, textarea { font-family: inherit; font-size: 14px; }
 .leaderboard-row.top-2 { background: #f1f5f9; border-color: #94a3b8; }
 .leaderboard-row.top-3 { background: #ffedd5; border-color: #d97706; }
 
-/* TOOLS GRID (BENTO BOX STYLE) */
+/* TOOLS GRID */
 .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
 .tool-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow); }
@@ -123,6 +123,10 @@ input, textarea { font-family: inherit; font-size: 14px; }
 /* POMODORO & FLASHCARDS */
 .timer-display { font-size: 48px; font-weight: 800; color: var(--primary); text-align: center; margin: 20px 0; font-variant-numeric: tabular-nums; }
 .flashcard { background: var(--primary); color: white; border-radius: 12px; padding: 30px 20px; text-align: center; font-size: 18px; font-weight: 600; min-height: 150px; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: var(--shadow); margin-bottom: 15px; transition: 0.3s; transform-style: preserve-3d; }
+
+/* CALCULATOR */
+.calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.calc-result { background: var(--bg); padding: 15px; border-radius: 8px; text-align: center; font-weight: 700; font-size: 16px; color: var(--primary); border: 1px solid var(--border); }
 
 /* LOGS TIMELINE */
 .log-timeline { border-left: 2px solid var(--border); margin-left: 10px; padding-left: 15px; }
@@ -172,7 +176,7 @@ input, textarea { font-family: inherit; font-size: 14px; }
     <div id="registerLink" class="hidden" style="text-align:center; margin-top:15px; font-size:13px;">
       New student? <a href="#" onclick="showRegister(event)" style="color:var(--primary); font-weight:700; text-decoration:none;">Create Account</a>
     </div>
-    <div style="text-align:center; margin-top:20px; font-size:11px; color:var(--text-muted); font-weight:500;">Version 2.0</div>
+    <div style="text-align:center; margin-top:20px; font-size:11px; color:var(--text-muted); font-weight:500;">Version 3.0</div>
   </div>
 </div>
 
@@ -277,10 +281,10 @@ input, textarea { font-family: inherit; font-size: 14px; }
 </div>
 
 <div id="certModal" class="modal">
-  <div class="modal-content">
+  <div class="modal-content" style="max-width: 800px;">
     <h3 style="margin-bottom:5px;">Congratulations! 🎉</h3>
     <p style="color:var(--text-muted); font-size:13px;">You have completed all NC II tasks.</p>
-    <canvas id="certCanvas" width="800" height="600"></canvas>
+    <canvas id="certCanvas" width="800" height="600" style="max-width: 100%; height: auto;"></canvas>
     <button class="btn btn-success" onclick="downloadCertificate()">Download Certificate</button>
     <button class="btn btn-outline" onclick="closeModal('certModal')">Close</button>
   </div>
@@ -360,8 +364,11 @@ async function initTeacher() {
   if (!data || data.length === 0) {
     await sb.from('users').insert([{
       id: crypto.randomUUID(), username: 'emnace', password_hash: await hashPassword('paulinag'),
-      name: 'Trainer', role: 'teacher', status: 'approved', xp: 9999
+      name: 'Jayson Amicane', role: 'teacher', status: 'approved', xp: 9999
     }]);
+  } else {
+    // Ensure name is Jayson Amicane for this version
+    await sb.from('users').update({ name: 'Jayson Amicane' }).eq('username', 'emnace');
   }
 }
 
@@ -733,18 +740,16 @@ function openTeacherProfile() { toggleDrawer(); openCropper(); }
    STUDENT LOGIC
    ============================================================ */
 async function recalculateStudent(studentId) {
-  // This function syncs XP and Completion status based on current answers
+  // Syncs XP based on current 'yes' answers
   const { data: assessment } = await sb.from('assessments').select('answers').eq('student_id', studentId).single();
   let answers = assessment?.answers || {};
-  
-  let totalItems = 0;
-  dynamicTasks.forEach(t => totalItems += t.items.length);
   
   let yesCount = 0;
   Object.values(answers).forEach(v => {
     if (v === 'yes') yesCount++;
   });
 
+  // 10 XP per correctly completed task
   const newXp = yesCount * 10;
   await sb.from('users').update({ xp: newXp }).eq('id', studentId);
 }
@@ -769,11 +774,17 @@ async function switchStudentTab(tab, btn) {
       Object.values(a.answers).forEach(v => {
          if(v === 'yes') yesCount++;
       });
-      progress = Math.round((yesCount / totalItems) * 100);
+      progress = totalItems === 0 ? 0 : Math.round((yesCount / totalItems) * 100);
     }
 
-    const circumference = 2 * Math.PI * 45; // 45 is radius
+    const circumference = 2 * Math.PI * 45; 
     const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+    // AUTO SHOW CERTIFICATE
+    if (progress === 100 && !sessionStorage.getItem('cert_shown')) {
+        sessionStorage.setItem('cert_shown', 'true');
+        openCertificate();
+    }
 
     container.innerHTML = `
       <div class="welcome-card">
@@ -800,7 +811,7 @@ async function switchStudentTab(tab, btn) {
         </div>
         
         ${progress === 100 ? `
-          <button class="btn btn-success" onclick="openCertificate()" style="animation: pulse 2s infinite;">🏆 Claim Certificate</button>
+          <button class="btn btn-success" onclick="openCertificate()">🏆 View Certificate</button>
         ` : `
           <button class="btn" onclick="switchStudentTab('tasks', document.querySelectorAll('.nav-btn')[1])">Continue Tasks</button>
         `}
@@ -860,9 +871,9 @@ async function switchStudentTab(tab, btn) {
         <div class="tool-card" onclick="renderPomodoro()"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div style="font-weight:700; font-size:12px;">Pomodoro</div></div>
         <div class="tool-card" onclick="renderFlashcards()"><div class="tool-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg></div><div style="font-weight:700; font-size:12px;">Flashcards</div></div>
         <div class="tool-card" onclick="renderNotes()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div><div style="font-weight:700; font-size:12px;">My Notes</div></div>
+        <div class="tool-card" onclick="renderStopwatch()"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div style="font-weight:700; font-size:12px;">Stopwatch</div></div>
+        <div class="tool-card" onclick="renderCalculator()"><div class="tool-icon"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="8" y1="10" x2="8" y2="10.01"></line><line x1="12" y1="10" x2="12" y2="10.01"></line><line x1="16" y1="10" x2="16" y2="10.01"></line><line x1="8" y1="14" x2="8" y2="14.01"></line><line x1="12" y1="14" x2="12" y2="14.01"></line><line x1="16" y1="14" x2="16" y2="14.01"></line><line x1="8" y1="18" x2="8" y2="18.01"></line><line x1="12" y1="18" x2="12" y2="18.01"></line><line x1="16" y1="18" x2="16" y2="18.01"></line></svg></div><div style="font-weight:700; font-size:12px;">Partition Calc</div></div>
         <div class="tool-card" onclick="confetti()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div style="font-weight:700; font-size:12px;">Celebrate</div></div>
-        <div class="tool-card" onclick="alert('Calculator: ' + eval(prompt('Enter math expression (e.g., 5+5):')))"><div class="tool-icon"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="8" y1="10" x2="8" y2="10.01"></line><line x1="12" y1="10" x2="12" y2="10.01"></line><line x1="16" y1="10" x2="16" y2="10.01"></line><line x1="8" y1="14" x2="8" y2="14.01"></line><line x1="12" y1="14" x2="12" y2="14.01"></line><line x1="16" y1="14" x2="16" y2="14.01"></line><line x1="8" y1="18" x2="8" y2="18.01"></line><line x1="12" y1="18" x2="12" y2="18.01"></line><line x1="16" y1="18" x2="16" y2="18.01"></line></svg></div><div style="font-weight:700; font-size:12px;">Calculator</div></div>
-        <div class="tool-card" onclick="alert('Stopwatch Ready!')"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div style="font-weight:700; font-size:12px;">Stopwatch</div></div>
       </div>
       <div id="toolContent" style="margin-top:20px;"></div>
     `;
@@ -893,6 +904,7 @@ async function studentGrade(item, val, btn) {
   const group = btn.parentElement;
   const isAlreadyActive = btn.classList.contains('active');
 
+  // Optimistic UI Update (prevents bugs)
   group.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
 
   const wasAnswered = currentAssessment.answers && currentAssessment.answers[item];
@@ -950,6 +962,77 @@ function resetPomo() {
   pomoRunning = false;
   pomoTime = 25 * 60;
   if(document.getElementById('pomoDisplay')) document.getElementById('pomoDisplay').textContent = "25:00";
+}
+
+function renderStopwatch() {
+  let sec = 0;
+  let interval = null;
+  document.getElementById('toolContent').innerHTML = `
+    <div class="card">
+      <h3 style="text-align:center; margin-bottom:10px;">Stopwatch</h3>
+      <div class="timer-display" id="swDisplay">00:00:00</div>
+      <div style="display:flex; gap:10px; margin-bottom:10px;">
+        <button class="btn btn-success" onclick="startSW()">Start</button>
+        <button class="btn btn-danger" onclick="stopSW()">Stop</button>
+        <button class="btn btn-outline" onclick="editSW()">Edit Time</button>
+      </div>
+      <button class="btn btn-outline" onclick="resetSW()">Reset</button>
+    </div>
+  `;
+
+  window.startSW = () => {
+    if(interval) return;
+    interval = setInterval(() => {
+      sec++;
+      let h = Math.floor(sec / 3600);
+      let m = Math.floor((sec % 3600) / 60);
+      let s = sec % 60;
+      document.getElementById('swDisplay').textContent = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    }, 1000);
+  };
+  window.stopSW = () => { clearInterval(interval); interval = null; };
+  window.resetSW = () => { clearInterval(interval); interval = null; sec = 0; document.getElementById('swDisplay').textContent = "00:00:00"; };
+  window.editSW = () => {
+    let mins = prompt("Enter minutes:", "5");
+    if(mins !== null) { sec = parseInt(mins) * 60; document.getElementById('swDisplay').textContent = `00:${mins.padStart(2,'0')}:00`; }
+  };
+}
+
+function renderCalculator() {
+  document.getElementById('toolContent').innerHTML = `
+    <div class="card">
+      <h3 style="text-align:center; margin-bottom:10px;">Partition Calculator</h3>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px; text-align:center;">Calculate 40% / 60% disk partitions for OS Installation.</p>
+      
+      <div class="form-group">
+        <label>Total Disk Size (GB)</label>
+        <input type="number" id="totalSize" value="500" oninput="calcPartition()">
+      </div>
+      
+      <div class="calc-grid">
+        <div>
+          <label style="font-size:10px; color:var(--text-muted);">Partition 1 (%)</label>
+          <input type="number" id="p1Percent" value="40" oninput="calcPartition()">
+        </div>
+        <div>
+          <label style="font-size:10px; color:var(--text-muted);">Partition 2 (%)</label>
+          <input type="number" id="p2Percent" value="60" oninput="calcPartition()">
+        </div>
+      </div>
+
+      <div class="calc-result" id="calcResult">
+        Partition 1: 200.00 GB<br>Partition 2: 300.00 GB
+      </div>
+    </div>
+  `;
+  window.calcPartition = () => {
+    let total = parseFloat(document.getElementById('totalSize').value) || 0;
+    let p1 = parseFloat(document.getElementById('p1Percent').value) || 0;
+    let p2 = parseFloat(document.getElementById('p2Percent').value) || 0;
+    let p1Size = (total * p1 / 100).toFixed(2);
+    let p2Size = (total * p2 / 100).toFixed(2);
+    document.getElementById('calcResult').innerHTML = `Partition 1: ${p1Size} GB<br>Partition 2: ${p2Size} GB`;
+  };
 }
 
 function renderFlashcards() {
@@ -1023,7 +1106,7 @@ function drawCertificate() {
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, 800, 600);
   
-  // Border
+  // Decorative Borders
   ctx.strokeStyle = "#2563eb";
   ctx.lineWidth = 15;
   ctx.strokeRect(20, 20, 760, 560);
@@ -1031,57 +1114,77 @@ function drawCertificate() {
   ctx.strokeStyle = "#e2e8f0";
   ctx.lineWidth = 4;
   ctx.strokeRect(40, 40, 720, 520);
+
+  // Gold Seal
+  ctx.beginPath();
+  ctx.arc(400, 500, 40, 0, Math.PI * 2);
+  ctx.fillStyle = "#fbbf24";
+  ctx.fill();
+  ctx.strokeStyle = "#b45309";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.fillStyle = "#78350f";
+  ctx.font = "bold 14px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("SEAL", 400, 505);
   
   // Title
   ctx.fillStyle = "#1e3a8a";
   ctx.font = "bold 42px sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("CERTIFICATE OF COMPLETION", 400, 130);
+  ctx.fillText("CERTIFICATE OF COMPLETION", 400, 120);
   
   // Subtitle
   ctx.fillStyle = "#64748b";
   ctx.font = "20px sans-serif";
-  ctx.fillText("This is to certify that", 400, 210);
+  ctx.fillText("This is to certify that", 400, 180);
   
   // Name
   ctx.fillStyle = "#0f172a";
   ctx.font = "bold 48px sans-serif";
-  ctx.fillText(currentUser.name.toUpperCase(), 400, 290);
+  ctx.fillText(currentUser.name.toUpperCase(), 400, 250);
   
   // Body text
   ctx.fillStyle = "#64748b";
   ctx.font = "18px sans-serif";
-  ctx.fillText("has successfully completed the Practical Assessment for", 400, 350);
+  ctx.fillText("has successfully completed the Practical Assessment for", 400, 310);
   
   ctx.fillStyle = "#2563eb";
-  ctx.font = "bold 26px sans-serif";
-  ctx.fillText("COMPUTER SYSTEMS SERVICING NC II", 400, 395);
+  ctx.font = "bold 22px sans-serif";
+  ctx.fillText("Computer Systems Servicing NC II", 400, 345);
+  
+  ctx.fillStyle = "#0f172a";
+  ctx.font = "bold 18px sans-serif";
+  ctx.fillText("Unit Code 1: Windows Installation and Apps", 400, 380);
   
   // Date
   ctx.fillStyle = "#64748b";
   ctx.font = "16px sans-serif";
   const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  ctx.fillText(`Awarded on ${dateStr}`, 400, 450);
+  ctx.fillText(`Awarded on ${dateStr}`, 400, 425);
   
   // Signatures
   ctx.font = "16px sans-serif";
   ctx.strokeStyle = "#0f172a";
   ctx.lineWidth = 1;
   
-  // Line 1
+  // Line 1 (Trainer)
   ctx.beginPath();
   ctx.moveTo(200, 520);
   ctx.lineTo(350, 520);
   ctx.stroke();
   ctx.fillStyle = "#0f172a";
-  ctx.fillText("Trainer's Signature", 275, 540);
+  ctx.fillText("Jayson Amicane", 275, 540);
+  ctx.fillStyle = "#64748b";
+  ctx.font = "12px sans-serif";
+  ctx.fillText("Trainer", 275, 555);
   
-  // Line 2
+  // Line 2 (Admin)
   ctx.beginPath();
   ctx.moveTo(450, 520);
   ctx.lineTo(600, 520);
   ctx.stroke();
   ctx.fillStyle = "#0f172a";
+  ctx.font = "16px sans-serif";
   ctx.fillText("School Administrator", 525, 540);
 }
 
