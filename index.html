@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0f172a">
-<title>CSS NC II - Assessment Portal v4.0</title>
+<title>CSS NC II - Assessment Portal v4.3</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -16,8 +16,14 @@
   --bottom-nav: 64px; --shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
 }
 body.dark {
-  --bg: #0f172a; --surface: #1e293b; --border: #334155; --text-main: #f8fafc; --text-muted: #94a3b8;
+  --bg: #0b1120; --surface: #1e293b; --border: #334155; --text-main: #f8fafc; --text-muted: #94a3b8;
+  --primary: #3b82f6;
 }
+body.dark .card { box-shadow: 0 4px 12px -2px rgba(0,0,0,0.5); border-color: #334155; }
+body.dark .header { background: #1e293b; border-color: #334155; }
+body.dark .bottom-nav { background: #1e293b; border-color: #334155; }
+body.dark .welcome-card { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid #334155; }
+
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body { background: var(--bg); color: var(--text-main); font-family: -apple-system, sans-serif; font-size: 14px; line-height: 1.5; transition: 0.3s; }
 button { cursor: pointer; border: none; background: none; font-family: inherit; }
@@ -55,6 +61,10 @@ input, textarea { font-family: inherit; font-size: 14px; }
 .avatar { width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 50%; display: grid; place-items: center; font-weight: 700; overflow: hidden; flex-shrink: 0; }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
 .content { padding: 16px; padding-bottom: calc(var(--bottom-nav) + 80px); max-width: 800px; margin: 0 auto; }
+
+/* SEARCH BAR */
+.search-bar { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text-main); margin-bottom: 15px; outline: none; transition: 0.2s; }
+.search-bar:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
 /* NAVIGATION & DRAWER */
 .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: var(--bottom-nav); background: var(--surface); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 50; padding-bottom: env(safe-area-inset-bottom); }
@@ -101,7 +111,7 @@ input, textarea { font-family: inherit; font-size: 14px; }
 .circle-text { position: absolute; font-size: 28px; font-weight: 800; color: var(--text-main); }
 
 /* MODALS & CROPPER */
-.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; place-items: center; z-index: 200; padding: 20px; backdrop-filter: blur(2px); overflow-y: auto; }
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; place-items: center; z-index: 200; padding: 20px; backdrop-filter: blur(4px); overflow-y: auto; }
 .modal.open { display: grid; }
 .modal-content { background: var(--surface); width: 100%; max-width: 500px; border-radius: 16px; padding: 24px; text-align: center; margin: auto; }
 #qr-reader { width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 15px; }
@@ -141,7 +151,7 @@ input, textarea { font-family: inherit; font-size: 14px; }
 .log-text { font-size: 13px; font-weight: 500; }
 
 /* CERTIFICATE CANVAS */
-#certCanvas { width: 100%; max-width: 600px; border-radius: 8px; margin: 15px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+#certCanvas { width: 100%; max-width: 700px; border-radius: 12px; margin: 15px 0; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
 
 .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -181,7 +191,7 @@ input, textarea { font-family: inherit; font-size: 14px; }
     <div id="registerLink" class="hidden" style="text-align:center; margin-top:15px; font-size:13px;">
       New student? <a href="#" onclick="showRegister(event)" style="color:var(--primary); font-weight:700; text-decoration:none;">Create Account</a>
     </div>
-    <div style="text-align:center; margin-top:20px; font-size:11px; color:var(--text-muted); font-weight:500;">Version 4.0</div>
+    <div style="text-align:center; margin-top:20px; font-size:11px; color:var(--text-muted); font-weight:500;">Version 4.3</div>
   </div>
 </div>
 
@@ -291,12 +301,10 @@ input, textarea { font-family: inherit; font-size: 14px; }
 </div>
 
 <div id="certModal" class="modal">
-  <div class="modal-content" style="max-width: 800px;">
-    <h3 style="margin-bottom:5px;">Congratulations! 🎉</h3>
-    <p style="color:var(--text-muted); font-size:13px;">You have completed all NC II tasks.</p>
-    <canvas id="certCanvas" width="800" height="600" style="max-width: 100%; height: auto;"></canvas>
-    <button class="btn btn-success" onclick="downloadCertificate()">Download Certificate</button>
-    <button class="btn btn-outline" onclick="closeModal('certModal')">Close</button>
+  <div class="modal-content" style="max-width: 800px; background: transparent; box-shadow: none; padding: 0;">
+    <canvas id="certCanvas" width="800" height="600" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"></canvas>
+    <button class="btn btn-success" onclick="downloadCertificate()" style="margin-top: 15px;">Download Image</button>
+    <button class="btn btn-outline" onclick="closeModal('certModal')" style="color: white; border-color: white;">Close</button>
   </div>
 </div>
 
@@ -315,6 +323,7 @@ let currentAssessment = null;
 let html5QrCode = null;
 let pollInterval = null;
 let dynamicTasks = [];
+let cachedStudentsList = [];
 
 // Crop variables
 let imgObj = new Image();
@@ -389,10 +398,10 @@ async function initTeacher() {
   if (!data || data.length === 0) {
     await sb.from('users').insert([{
       id: crypto.randomUUID(), username: 'emnace', password_hash: await hashPassword('paulinag'),
-      name: 'Jayson Amicane', role: 'teacher', status: 'approved', xp: 9999
+      name: 'Jayson Emnace', role: 'teacher', status: 'approved', xp: 9999
     }]);
   } else {
-    await sb.from('users').update({ name: 'Jayson Amicane' }).eq('username', 'emnace');
+    await sb.from('users').update({ name: 'Jayson Emnace' }).eq('username', 'emnace');
   }
 }
 
@@ -470,12 +479,21 @@ async function loginSuccess(user) {
   if (user.role === 'teacher') {
     document.getElementById('menuBtn').classList.remove('hidden');
     document.getElementById('studentNav').classList.add('hidden');
-    const savedView = sessionStorage.getItem('css_teacher_view');
-    if(savedView) switchView(savedView);
-    else switchView('dashboard');
+    
+    const savedView = sessionStorage.getItem('css_teacher_view') || 'dashboard';
+    const savedStudentId = sessionStorage.getItem('css_teacher_student_id');
+
+    if (savedView === 'student_detail' && savedStudentId) {
+      viewStudentDetail(savedStudentId);
+    } else if (savedView === 'student_assessment' && savedStudentId) {
+      viewStudentAssessment(savedStudentId); 
+    } else {
+      switchView(savedView);
+    }
   } else {
     document.getElementById('menuBtn').classList.add('hidden');
     document.getElementById('studentNav').classList.remove('hidden');
+    
     const savedTab = sessionStorage.getItem('css_active_tab') || 'home';
     switchStudentTab(savedTab, document.getElementById('nav-'+savedTab));
   }
@@ -542,26 +560,16 @@ async function switchView(view) {
     `;
   } 
   else if (view === 'students') {
-    const { data: students } = await sb.from('users').select('*').eq('role', 'student').order('name');
-    let html = `<h2 style="margin-bottom:15px; font-size:20px;">Student List</h2>`;
-    if (!students || students.length === 0) { html += `<p style="text-align:center; color:var(--text-muted);">No students registered.</p>`; } 
-    else {
-      students.forEach(s => {
-        html += `
-          <div class="card" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="viewStudentDetail('${s.id}')">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <div class="avatar" style="width:40px; height:40px; font-size:16px;">${s.profile_picture ? `<img src="${s.profile_picture}">` : (s.name||'U').charAt(0)}</div>
-              <div>
-                <div style="font-weight:700; font-size:15px; ${s.is_blocked ? 'text-decoration:line-through; color:var(--text-muted);' : ''}">${s.name}</div>
-                <div style="font-size:12px; color:var(--text-muted);">${s.section || 'No Section'}</div>
-              </div>
-            </div>
-            <div class="badge ${s.is_blocked ? 'blocked' : s.status}">${s.is_blocked ? 'Blocked' : s.status}</div>
-          </div>
-        `;
-      });
-    }
+    const { data } = await sb.from('users').select('*').eq('role', 'student').order('name');
+    cachedStudentsList = data || [];
+    
+    let html = `
+      <h2 style="margin-bottom:15px; font-size:20px;">Student List</h2>
+      <input type="text" id="studentSearch" class="search-bar" placeholder="🔍 Search student by name or section..." oninput="filterStudents(this.value)">
+      <div id="studentListContainer"></div>
+    `;
     container.innerHTML = html;
+    renderStudentList('');
   }
   else if (view === 'leaderboard') {
     const { data: students } = await sb.from('users').select('*').eq('role', 'student').order('xp', { ascending: false });
@@ -619,6 +627,44 @@ async function switchView(view) {
   }
 }
 
+function renderStudentList(query) {
+  const container = document.getElementById('studentListContainer');
+  if (!container) return;
+  
+  const q = query.toLowerCase();
+  const filtered = cachedStudentsList.filter(s => 
+    s.name.toLowerCase().includes(q) || 
+    (s.section && s.section.toLowerCase().includes(q)) ||
+    s.username.toLowerCase().includes(q)
+  );
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:20px;">No students found.</p>`;
+    return;
+  }
+
+  let html = '';
+  filtered.forEach(s => {
+    html += `
+      <div class="card" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="viewStudentDetail('${s.id}')">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="avatar" style="width:40px; height:40px; font-size:16px;">${s.profile_picture ? `<img src="${s.profile_picture}">` : (s.name||'U').charAt(0)}</div>
+          <div>
+            <div style="font-weight:700; font-size:15px; ${s.is_blocked ? 'text-decoration:line-through; color:var(--text-muted);' : ''}">${s.name}</div>
+            <div style="font-size:12px; color:var(--text-muted);">${s.section || 'No Section'}</div>
+          </div>
+        </div>
+        <div class="badge ${s.is_blocked ? 'blocked' : s.status}">${s.is_blocked ? 'Blocked' : s.status}</div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function filterStudents(val) {
+  renderStudentList(val);
+}
+
 function openAddTaskModal() { document.getElementById('addTaskSection').classList.toggle('hidden'); }
 
 async function saveNewTask() {
@@ -639,9 +685,14 @@ async function saveNewTask() {
 async function editTaskTitle(id, oldTitle) {
   const newTitle = prompt("Enter new task title:", oldTitle);
   if(!newTitle || newTitle === oldTitle) return;
-  
+
   if(id.startsWith('t')) {
-    await sb.from('custom_tasks').insert([{ original_id: id, title: newTitle, items: [], is_deleted: false }]);
+    const { data } = await sb.from('custom_tasks').select('*').eq('original_id', id).maybeSingle();
+    if(data) {
+      await sb.from('custom_tasks').update({ title: newTitle, is_deleted: false }).eq('original_id', id);
+    } else {
+      await sb.from('custom_tasks').insert([{ original_id: id, title: newTitle, items: [], is_deleted: false }]);
+    }
   } else {
     await sb.from('custom_tasks').update({ title: newTitle }).eq('id', id);
   }
@@ -650,12 +701,19 @@ async function editTaskTitle(id, oldTitle) {
 }
 
 async function deleteTask(id) {
-  if(!confirm("Delete this task permanently?")) return;
+  if(!confirm("Delete this task permanently? This will remove it from all students.")) return;
+  
   if(id.startsWith('t')) {
-    await sb.from('custom_tasks').insert([{ original_id: id, title: 'Deleted', items: [], is_deleted: true }]);
+    const { data } = await sb.from('custom_tasks').select('*').eq('original_id', id).maybeSingle();
+    if(data) {
+      await sb.from('custom_tasks').update({ is_deleted: true }).eq('original_id', id);
+    } else {
+      await sb.from('custom_tasks').insert([{ original_id: id, title: 'Deleted', items: [], is_deleted: true }]);
+    }
   } else {
     await sb.from('custom_tasks').delete().eq('id', id);
   }
+  
   await fetchTasks();
   switchView('manageTasks');
 }
@@ -694,7 +752,9 @@ async function pickRandomStudent() {
 }
 
 async function viewStudentDetail(studentId) {
-  sessionStorage.setItem('css_teacher_student', studentId);
+  sessionStorage.setItem('css_teacher_view', 'student_detail');
+  sessionStorage.setItem('css_teacher_student_id', studentId);
+  
   const container = document.getElementById('mainContent');
   container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="border-color:var(--primary); border-top-color:transparent; margin:0 auto;"></div></div>';
   const { data: student } = await sb.from('users').select('*').eq('id', studentId).single();
@@ -708,7 +768,7 @@ async function viewStudentDetail(studentId) {
       <p style="color:var(--text-muted); margin-bottom:15px;">${student.section || 'No Section'} • XP: ${student.xp||0}</p>
       
       <div style="display:flex; gap:10px; justify-content:center; margin-bottom:15px;">
-        <button class="btn" onclick="viewStudentAssessment('${student.id}', '${student.name}')" style="flex:1;">Grade Tasks</button>
+        <button class="btn" onclick="viewStudentAssessment('${student.id}', '${student.name.replace(/'/g, "\\'")}')" style="flex:1;">Grade Tasks</button>
         <button class="btn" style="flex:1; background:${student.allow_student_edit ? 'var(--danger)' : 'var(--success)'};" onclick="toggleEditPerm('${student.id}', ${student.allow_student_edit})">
           ${student.allow_student_edit ? 'Lock Tasks' : 'Allow Edit'}
         </button>
@@ -749,8 +809,18 @@ async function deleteStudent(id) {
   switchView('students');
 }
 
-async function viewStudentAssessment(studentId, studentName) {
+async function viewStudentAssessment(studentId, studentName = null) {
+  sessionStorage.setItem('css_teacher_view', 'student_assessment');
+  sessionStorage.setItem('css_teacher_student_id', studentId);
+
+  if(!studentName) {
+    const { data } = await sb.from('users').select('name').eq('id', studentId).single();
+    studentName = data ? data.name : 'Student';
+  }
+
   const container = document.getElementById('mainContent');
+  container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="border-color:var(--primary); border-top-color:transparent; margin:0 auto;"></div></div>';
+  
   const { data } = await sb.from('assessments').select('*').eq('student_id', studentId).single();
   let answers = data?.answers || {};
   
@@ -861,12 +931,16 @@ async function editTeacherName() {
    STUDENT LOGIC
    ============================================================ */
 async function recalculateStudent(studentId) {
+  await fetchTasks(); // Ensure we are calculating based on the latest tasks
   const { data: assessment } = await sb.from('assessments').select('answers').eq('student_id', studentId).single();
   let answers = assessment?.answers || {};
   
   let yesCount = 0;
-  Object.values(answers).forEach(v => {
-    if (v === 'yes') yesCount++;
+  // Only count YES if the task still exists in dynamicTasks
+  dynamicTasks.forEach(t => {
+    t.items.forEach(item => {
+      if (answers[item] === 'yes') yesCount++;
+    });
   });
 
   const newXp = yesCount * 10;
@@ -879,30 +953,45 @@ async function switchStudentTab(tab, btn) {
   if (btn) btn.classList.add('active');
   const container = document.getElementById('mainContent');
   
+  // CRITICAL: Fetch latest tasks to ensure sync with teacher changes
+  await fetchTasks(); 
+
   if (tab === 'home') {
     const { data: u } = await sb.from('users').select('*').eq('id', currentUser.id).single();
     currentUser = u;
     
-    let progress = 0;
     let totalItems = 0; 
-    dynamicTasks.forEach(t => totalItems += t.items.length);
-    
+    let yesCount = 0;
+
     const { data: a } = await sb.from('assessments').select('answers').eq('student_id', currentUser.id).single();
-    
-    if (a && a.answers) {
-      let yesCount = 0;
-      Object.values(a.answers).forEach(v => {
-         if(v === 'yes') yesCount++;
+    currentAssessment = a || { answers: {} };
+    let answers = currentAssessment.answers || {};
+
+    // Dynamic calculation: If teacher adds a task, totalItems increases, progress drops.
+    dynamicTasks.forEach(t => {
+      t.items.forEach(item => {
+        totalItems++;
+        if (answers[item] === 'yes') {
+          yesCount++;
+        }
       });
-      progress = totalItems === 0 ? 0 : Math.round((yesCount / totalItems) * 100);
-    }
+    });
+    
+    let progress = totalItems === 0 ? 0 : Math.round((yesCount / totalItems) * 100);
+    let isComplete = (progress === 100 && totalItems > 0);
 
     const circumference = 2 * Math.PI * 45; 
     const strokeDashoffset = circumference - (progress / 100) * circumference;
 
-    if (progress === 100 && !sessionStorage.getItem('cert_shown')) {
+    // Auto-show certificate logic
+    if (isComplete) {
+      if (!sessionStorage.getItem('cert_shown')) {
         sessionStorage.setItem('cert_shown', 'true');
         openCertificate();
+      }
+    } else {
+      // If they drop below 100% (e.g., teacher added a new task), reset the flag so it shows again when they finish
+      sessionStorage.removeItem('cert_shown');
     }
 
     container.innerHTML = `
@@ -929,7 +1018,7 @@ async function switchStudentTab(tab, btn) {
           <div class="stat-box"><h3>${progress}%</h3><p>Done</p></div>
         </div>
         
-        ${progress === 100 ? `
+        ${isComplete ? `
           <button class="btn btn-success" onclick="openCertificate()">🏆 View Certificate</button>
         ` : `
           <button class="btn" onclick="switchStudentTab('tasks', document.getElementById('nav-tasks'))">Continue Tasks</button>
@@ -1217,7 +1306,7 @@ function saveNotes() {
 }
 
 /* ============================================================
-   CERTIFICATE GENERATOR
+   INSTAGRAMMABLE CERTIFICATE GENERATOR
    ============================================================ */
 function openCertificate() {
   document.getElementById('certModal').classList.add('open');
@@ -1228,70 +1317,95 @@ function drawCertificate() {
   const canvas = document.getElementById('certCanvas');
   const ctx = canvas.getContext('2d');
   
-  // Background
-  ctx.fillStyle = "#ffffff";
+  // 1. Premium Dark Gradient Background
+  const gradient = ctx.createLinearGradient(0, 0, 800, 600);
+  gradient.addColorStop(0, '#0f172a');
+  gradient.addColorStop(1, '#1e1b4b');
+  ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, 800, 600);
   
-  // Decorative Borders
-  ctx.strokeStyle = "#2563eb";
-  ctx.lineWidth = 15;
-  ctx.strokeRect(20, 20, 760, 560);
+  // 2. Decorative Background Circles (Glowing effect)
+  ctx.fillStyle = 'rgba(251, 191, 36, 0.03)';
+  ctx.beginPath();
+  ctx.arc(400, 300, 250, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(37, 99, 235, 0.05)';
+  ctx.beginPath();
+  ctx.arc(150, 150, 100, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 3. Elegant Gold Borders
+  ctx.strokeStyle = '#fbbf24';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(30, 30, 740, 540);
   
-  ctx.strokeStyle = "#e2e8f0";
-  ctx.lineWidth = 4;
-  ctx.strokeRect(40, 40, 720, 520);
+  ctx.strokeStyle = 'rgba(251, 191, 36, 0.3)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(45, 45, 710, 510);
   
-  // Title
-  ctx.fillStyle = "#1e3a8a";
-  ctx.font = "bold 42px sans-serif";
+  // 4. Typography
   ctx.textAlign = "center";
-  ctx.fillText("CERTIFICATE OF COMPLETION", 400, 140);
+  
+  // Header
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = "bold 16px sans-serif";
+  ctx.letterSpacing = "4px";
+  ctx.fillText("CERTIFICATE OF ACHIEVEMENT", 400, 120);
   
   // Subtitle
-  ctx.fillStyle = "#64748b";
-  ctx.font = "20px sans-serif";
-  ctx.fillText("This is to certify that", 400, 210);
+  ctx.fillStyle = '#cbd5e1';
+  ctx.font = "14px sans-serif";
+  ctx.letterSpacing = "0px";
+  ctx.fillText("This is proudly presented to", 400, 180);
   
-  // Name
-  ctx.fillStyle = "#0f172a";
-  ctx.font = "bold 48px sans-serif";
-  ctx.fillText(currentUser.name.toUpperCase(), 400, 290);
+  // Name (The Star of the Show)
+  ctx.fillStyle = '#ffffff';
+  ctx.font = "bold 48px serif";
+  ctx.fillText(currentUser.name.toUpperCase(), 400, 250);
   
-  // Body text
-  ctx.fillStyle = "#64748b";
-  ctx.font = "18px sans-serif";
-  ctx.fillText("has successfully completed the Practical Assessment for", 400, 350);
-  
-  ctx.fillStyle = "#2563eb";
-  ctx.font = "bold 22px sans-serif";
-  ctx.fillText("Computer Systems Servicing NC II", 400, 390);
-  
-  ctx.fillStyle = "#0f172a";
-  ctx.font = "bold 18px sans-serif";
-  ctx.fillText("Unit Code 1: Install and configure of computer systems", 400, 425);
-  
-  // Date
-  ctx.fillStyle = "#64748b";
-  ctx.font = "16px sans-serif";
-  const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  ctx.fillText(`Awarded on ${dateStr}`, 400, 475);
-  
-  // Signature (Centered)
-  ctx.strokeStyle = "#0f172a";
-  ctx.lineWidth = 1;
-  
+  // Gold Divider Line
+  ctx.strokeStyle = 'rgba(251, 191, 36, 0.5)';
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(300, 530);
-  ctx.lineTo(500, 530);
+  ctx.moveTo(250, 280);
+  ctx.lineTo(550, 280);
   ctx.stroke();
   
-  ctx.fillStyle = "#0f172a";
-  ctx.font = "bold 18px sans-serif";
-  ctx.fillText("Jayson Amicane", 400, 555);
+  // Body
+  ctx.fillStyle = '#cbd5e1';
+  ctx.font = "16px sans-serif";
+  ctx.fillText("for successfully completing the requirements for", 400, 330);
   
-  ctx.fillStyle = "#64748b";
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = "bold 22px sans-serif";
+  ctx.fillText("Computer Systems Servicing NC II", 400, 370);
+  
+  ctx.fillStyle = '#cbd5e1';
   ctx.font = "14px sans-serif";
-  ctx.fillText("Trainer", 400, 575);
+  ctx.fillText("Unit Code 1: Install and configure of computer systems", 400, 405);
+  
+  // Date
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = "12px sans-serif";
+  const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  ctx.fillText(`Issued on ${dateStr}`, 400, 450);
+  
+  // Signature
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(300, 500);
+  ctx.lineTo(500, 500);
+  ctx.stroke();
+  
+  ctx.fillStyle = '#ffffff';
+  ctx.font = "bold 18px sans-serif";
+  ctx.fillText("Jayson Emnace", 400, 525);
+  
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = "12px sans-serif";
+  ctx.fillText("Trainer", 400, 545);
 }
 
 function downloadCertificate() {
