@@ -23,6 +23,7 @@ body { background: var(--bg); color: var(--text-main); font-family: -apple-syste
 button { cursor: pointer; border: none; background: none; font-family: inherit; }
 svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .hidden { display: none !important; }
+input, textarea { font-family: inherit; font-size: 14px; }
 
 /* AUTH SCREENS */
 .auth-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; background: linear-gradient(135deg, #0f172a, #1e3a8a); }
@@ -36,13 +37,14 @@ svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: no
 .tabs button.active { background: var(--surface); color: var(--text-main); box-shadow: var(--shadow); }
 .form-group { margin-bottom: 15px; position: relative; }
 .form-group label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
-.form-group input { width: 100%; padding: 12px 40px 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text-main); outline: none; transition: 0.2s; }
-.form-group input:focus { border-color: var(--primary); background: var(--surface); }
-.eye-btn { position: absolute; right: 12px; bottom: 12px; color: var(--text-muted); padding: 4px; }
+.form-group input, .form-group textarea { width: 100%; padding: 12px 40px 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text-main); outline: none; transition: 0.2s; }
+.form-group input:focus, .form-group textarea:focus { border-color: var(--primary); background: var(--surface); }
+.eye-btn { position: absolute; right: 12px; bottom: 12px; color: var(--text-muted); padding: 4px; z-index: 10; }
 .btn { width: 100%; padding: 14px; background: var(--primary); color: white; font-weight: 600; border-radius: 10px; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
 .btn:hover { background: var(--primary-hover); }
 .btn-danger { background: var(--danger); }
 .btn-success { background: var(--success); }
+.btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text-main); }
 .msg { text-align: center; color: var(--danger); font-size: 12px; margin-top: 15px; font-weight: 500; min-height: 18px; }
 
 /* APP SHELL */
@@ -66,17 +68,17 @@ svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: no
 .drawer-item:hover { background: var(--bg); }
 
 /* CARDS & UI */
-.card { background: var(--surface); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.card { background: var(--surface); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
 .welcome-card { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; padding: 24px; border-radius: var(--radius); margin-bottom: 16px; }
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
 .stat-box { background: var(--surface); padding: 16px; border-radius: var(--radius); border: 1px solid var(--border); text-align: center; }
 .stat-box h3 { font-size: 24px; font-weight: 800; color: var(--primary); }
 .stat-box p { font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-top: 4px; }
-.task-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.task-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); gap: 10px; }
 .task-row:last-child { border-bottom: none; }
-.task-text { font-size: 13px; font-weight: 500; flex: 1; padding-right: 10px; }
-.toggle-group { display: flex; background: var(--bg); border-radius: 8px; padding: 3px; }
-.toggle-btn { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted); transition: 0.2s; }
+.task-text { font-size: 13px; font-weight: 500; flex: 1; word-break: break-word; }
+.toggle-group { display: flex; background: var(--bg); border-radius: 8px; padding: 3px; flex-shrink: 0; }
+.toggle-btn { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted); transition: 0.2s; }
 .toggle-btn.yes.active { background: var(--success); color: white; }
 .toggle-btn.no.active { background: var(--danger); color: white; }
 .toggle-btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -84,6 +86,10 @@ svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: no
 .badge.pending { background: #fef3c7; color: #92400e; }
 .badge.approved { background: #d1fae5; color: #065f46; }
 .badge.blocked { background: #fee2e2; color: #991b1b; }
+
+/* PROGRESS BAR */
+.progress-container { width: 100%; background: var(--border); border-radius: 10px; height: 12px; margin: 10px 0; overflow: hidden; }
+.progress-bar { height: 100%; background: var(--success); width: 0%; transition: width 0.5s ease; }
 
 /* MODALS & CROPPER */
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; place-items: center; z-index: 200; padding: 20px; backdrop-filter: blur(2px); overflow-y: auto; }
@@ -99,16 +105,20 @@ svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: no
 .slider { width: 100%; margin: 15px 0; }
 
 /* LEADERBOARD */
-.leaderboard-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 8px; margin-bottom: 8px; background: var(--bg); }
-.leaderboard-row.top-1 { background: #fef3c7; border: 1px solid #f59e0b; }
-.leaderboard-row.top-2 { background: #f1f5f9; border: 1px solid #94a3b8; }
-.leaderboard-row.top-3 { background: #ffedd5; border: 1px solid #d97706; }
+.leaderboard-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 8px; margin-bottom: 8px; background: var(--bg); border: 1px solid var(--border); }
+.leaderboard-row.top-1 { background: #fef3c7; border-color: #f59e0b; }
+.leaderboard-row.top-2 { background: #f1f5f9; border-color: #94a3b8; }
+.leaderboard-row.top-3 { background: #ffedd5; border-color: #d97706; }
 
 /* TOOLS GRID */
 .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; }
 .tool-card:hover { border-color: var(--primary); transform: translateY(-2px); }
 .tool-icon { width: 40px; height: 40px; background: var(--bg); border-radius: 50%; display: grid; place-items: center; color: var(--primary); }
+
+/* POMODORO & FLASHCARDS */
+.timer-display { font-size: 48px; font-weight: 800; color: var(--primary); text-align: center; margin: 20px 0; font-variant-numeric: tabular-nums; }
+.flashcard { background: var(--primary); color: white; border-radius: 12px; padding: 30px 20px; text-align: center; font-size: 18px; font-weight: 600; min-height: 150px; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: var(--shadow); margin-bottom: 15px; transition: 0.3s; transform-style: preserve-3d; }
 
 .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -224,7 +234,7 @@ svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: no
   <div class="modal-content">
     <h3 style="margin-bottom:15px;">Scan Student ID</h3>
     <div id="qr-reader"></div>
-    <button class="btn" onclick="closeScanner()" style="background:var(--border); color:var(--text-main);">Cancel</button>
+    <button class="btn btn-outline" onclick="closeScanner()">Cancel</button>
   </div>
 </div>
 
@@ -237,8 +247,11 @@ svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: no
     </div>
     <input type="range" id="zoomSlider" class="slider" min="1" max="3" step="0.1" value="1">
     <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="loadImage(this)">
-    <button class="btn" onclick="document.getElementById('fileInput').click()">Select Photo</button>
-    <button class="btn" id="saveCropBtn" onclick="saveCroppedImage()" style="display:none; background:var(--success);">Save Picture</button>
+    <button class="btn btn-outline" onclick="document.getElementById('fileInput').click()">Select Photo</button>
+    <div style="display:flex; gap:10px; margin-top:10px;">
+      <button class="btn btn-outline" onclick="closeModal('cropperModal')">Cancel</button>
+      <button class="btn btn-success" id="saveCropBtn" onclick="saveCroppedImage()" style="display:none;">Save Picture</button>
+    </div>
   </div>
 </div>
 
@@ -256,13 +269,24 @@ let currentUser = null;
 let currentAssessment = null;
 let html5QrCode = null;
 let pollInterval = null;
+let dynamicTasks = [];
 
 // Crop variables
 let imgObj = new Image();
 let scale = 1, translateX = 0, translateY = 0;
 let isDragging = false, startX, startY;
 
-const TASKS = [
+// Pomodoro variables
+let pomoTimer = null;
+let pomoTime = 25 * 60;
+let pomoRunning = false;
+
+// Flashcards variables
+let flashcards = JSON.parse(localStorage.getItem('css_flashcards') || '[]');
+let currentCardIndex = 0;
+let showFront = true;
+
+const BASE_TASKS = [
   { id:'t1', title:'Task 1: Setup', items:['Connect Peripherals', 'Power testing', 'Check Specs'] },
   { id:'t2', title:'Task 2: Bootable', items:['Create Rufus bootable USB'] },
   { id:'t3', title:'Task 3: BIOS', items:['Change Boot Priority'] },
@@ -271,10 +295,9 @@ const TASKS = [
   { id:'t6', title:'Task 6: Apps', items:['Winrar', 'Smadav', 'Drivers', 'Chrome', 'VLC', 'Adobe', 'Office'] },
   { id:'t7', title:'Task 7: Transfer', items:['USB Transfer', 'Phone Transfer', 'Keyboard Test', 'Mouse Test'] }
 ];
-const ALL_ITEMS = TASKS.reduce((acc, t) => acc.concat(t.items), []);
 
 /* ============================================================
-   AUTH & SECURITY
+   AUTH & CORE
    ============================================================ */
 async function hashPassword(pass) {
   const msgBuffer = new TextEncoder().encode(pass);
@@ -290,6 +313,14 @@ function togglePassword(inputId, btn) {
   } else {
     input.type = 'password';
     btn.style.color = 'var(--text-muted)';
+  }
+}
+
+async function fetchTasks() {
+  const { data } = await sb.from('custom_tasks').select('*').order('created_at');
+  dynamicTasks = [...BASE_TASKS];
+  if (data) {
+    data.forEach(t => dynamicTasks.push({ id: t.id, title: t.title, items: t.items }));
   }
 }
 
@@ -360,6 +391,7 @@ function showPendingScreen(user) {
 async function loginSuccess(user) {
   currentUser = user;
   localStorage.setItem('css_session', JSON.stringify(user));
+  await fetchTasks();
   
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('registerScreen').classList.add('hidden');
@@ -386,6 +418,7 @@ async function loginSuccess(user) {
 
 function logout() {
   if (pollInterval) clearInterval(pollInterval);
+  if(pomoTimer) clearInterval(pomoTimer);
   currentUser = null;
   localStorage.removeItem('css_session');
   document.getElementById('appShell').classList.add('hidden');
@@ -482,19 +515,70 @@ async function switchView(view) {
   }
   else if (view === 'teacherTools') {
     container.innerHTML = `
-      <h2 style="margin-bottom:15px; font-size:20px;">Teacher Tools (20)</h2>
+      <h2 style="margin-bottom:15px; font-size:20px;">Teacher Tools</h2>
       <div class="tools-grid">
         <div class="tool-card" onclick="openScanner()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></div><div style="font-weight:700; font-size:12px;">Scan QR</div></div>
         <div class="tool-card" onclick="switchView('leaderboard')"><div class="tool-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg></div><div style="font-weight:700; font-size:12px;">Leaderboard</div></div>
+        <div class="tool-card" onclick="openAddTaskModal()"><div class="tool-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></div><div style="font-weight:700; font-size:12px;">Add Task</div></div>
+        <div class="tool-card" onclick="exportCSV()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></div><div style="font-weight:700; font-size:12px;">Export CSV</div></div>
         <div class="tool-card" onclick="pickRandomStudent()"><div class="tool-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></div><div style="font-weight:700; font-size:12px;">Random Picker</div></div>
         <div class="tool-card" onclick="confetti()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div style="font-weight:700; font-size:12px;">Celebrate</div></div>
-        <div class="tool-card" onclick="alert('Attendance marked for today!')"><div class="tool-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div><div style="font-weight:700; font-size:12px;">Attendance</div></div>
-        <div class="tool-card" onclick="alert('Class Average: 85%')"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div><div style="font-weight:700; font-size:12px;">Class Avg</div></div>
-        <div class="tool-card" onclick="alert('Generating Groups...')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div><div style="font-weight:700; font-size:12px;">Group Gen</div></div>
-        <div class="tool-card" onclick="alert('Broadcasting...')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div><div style="font-weight:700; font-size:12px;">Broadcast</div></div>
+      </div>
+      
+      <div id="addTaskSection" class="card hidden" style="margin-top:20px;">
+        <h3 style="margin-bottom:10px;">Add New Competency</h3>
+        <div class="form-group"><label>Task Title</label><input type="text" id="newTaskTitle" placeholder="e.g. Task 8: Networking"></div>
+        <div class="form-group"><label>Items (Comma Separated)</label><textarea id="newTaskItems" rows="3" placeholder="Crimp cable, Test connection, Configure IP"></textarea></div>
+        <button class="btn btn-success" onclick="saveNewTask()">Save Task</button>
       </div>
     `;
   }
+}
+
+function openAddTaskModal() {
+  document.getElementById('addTaskSection').classList.toggle('hidden');
+}
+
+async function saveNewTask() {
+  const title = document.getElementById('newTaskTitle').value;
+  const itemsStr = document.getElementById('newTaskItems').value;
+  if(!title || !itemsStr) return alert("Please fill both fields.");
+  
+  const items = itemsStr.split(',').map(i => i.trim()).filter(i => i);
+  const { error } = await sb.from('custom_tasks').insert([{ title, items }]);
+  
+  if(!error) {
+    alert("Task Added Successfully!");
+    await fetchTasks(); // Refresh dynamic tasks
+    switchView('teacherTools');
+  } else {
+    alert("Error: " + error.message);
+  }
+}
+
+async function exportCSV() {
+  const { data: students } = await sb.from('users').select('*').eq('role', 'student');
+  const { data: assessments } = await sb.from('assessments').select('*');
+  
+  let csv = "Student Name,Section,XP,Status";
+  dynamicTasks.forEach(t => {
+    t.items.forEach(item => { csv += `,"${item}"`; });
+  });
+  csv += "\n";
+
+  students.forEach(s => {
+    const a = assessments.find(x => x.student_id === s.id) || { answers: {} };
+    let row = `"${s.name}","${s.section||''}",${s.xp||0},"${s.status}"`;
+    dynamicTasks.forEach(t => {
+      t.items.forEach(item => { row += `,"${a.answers[item] || ''}"`; });
+    });
+    csv += row + "\n";
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'CSS_Assessment_Data.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
 async function pickRandomStudent() {
@@ -560,9 +644,9 @@ async function viewStudentAssessment(studentId, studentName) {
   const { data } = await sb.from('assessments').select('*').eq('student_id', studentId).single();
   let answers = data?.answers || {};
   
-  let html = `<button onclick="viewStudentDetail('${studentId}')" style="margin-bottom:15px; font-weight:700; color:var(--primary);">← Back</button><h2 style="margin-bottom:15px; font-size:20px;">${studentName}'s Tasks (Teacher View)</h2>`;
+  let html = `<button onclick="viewStudentDetail('${studentId}')" style="margin-bottom:15px; font-weight:700; color:var(--primary);">← Back</button><h2 style="margin-bottom:15px; font-size:20px;">${studentName}'s Tasks</h2>`;
   
-  TASKS.forEach(t => {
+  dynamicTasks.forEach(t => {
     html += `<div class="card"><h3 style="font-size:14px; margin-bottom:10px; color:var(--primary); font-weight:700;">${t.title}</h3>`;
     t.items.forEach(item => {
       const val = answers[item] || '';
@@ -588,20 +672,13 @@ async function teacherGrade(studentId, item, val, btn) {
 
   const { data } = await sb.from('assessments').select('answers').eq('student_id', studentId).single();
   let answers = data?.answers || {};
-  const oldVal = answers[item] || 'blank';
   answers[item] = val;
 
   await sb.from('assessments').upsert({ student_id: studentId, answers, status: 'reviewed' }, { onConflict: 'student_id' });
   await sb.from('audit_logs').insert({ student_id: studentId, action: 'Teacher Graded', details: `Set "${item}" to ${val.toUpperCase()}` });
 }
 
-function openTeacherProfile() {
-  toggleDrawer();
-  document.getElementById('fileInput').value = '';
-  document.getElementById('cropImage').style.display = 'none';
-  document.getElementById('saveCropBtn').style.display = 'none';
-  document.getElementById('cropperModal').classList.add('open');
-}
+function openTeacherProfile() { toggleDrawer(); openCropper(); }
 
 /* ============================================================
    STUDENT LOGIC
@@ -612,7 +689,6 @@ async function switchStudentTab(tab, btn) {
   const container = document.getElementById('mainContent');
   
   if (tab === 'home') {
-    // Sync latest user data
     const { data: u } = await sb.from('users').select('*').eq('id', currentUser.id).single();
     currentUser = u;
     
@@ -620,7 +696,8 @@ async function switchStudentTab(tab, btn) {
     const { data: a } = await sb.from('assessments').select('answers').eq('student_id', currentUser.id).single();
     if (a && a.answers) {
       const answered = Object.keys(a.answers).length;
-      progress = Math.round((answered / ALL_ITEMS.length) * 100);
+      let totalItems = 0; dynamicTasks.forEach(t => totalItems += t.items.length);
+      progress = Math.round((answered / totalItems) * 100);
     }
 
     container.innerHTML = `
@@ -631,6 +708,10 @@ async function switchStudentTab(tab, btn) {
       <div class="stats-grid">
         <div class="stat-box"><h3>${currentUser.xp||0}</h3><p>Total XP</p></div>
         <div class="stat-box"><h3>${progress}%</h3><p>Completed</p></div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:14px; margin-bottom:10px;">Overall Progress</h3>
+        <div class="progress-container"><div class="progress-bar" style="width: ${progress}%;"></div></div>
       </div>
       <button class="btn" onclick="switchStudentTab('tasks', document.querySelectorAll('.nav-btn')[1])">Go to Tasks</button>
     `;
@@ -646,7 +727,7 @@ async function switchStudentTab(tab, btn) {
       html += `<div class="card" style="background:#fef3c7; border-color:#f59e0b; color:#92400e; font-size:12px; padding:10px; margin-bottom:15px;">Locked: Wait for your teacher to allow editing.</div>`;
     }
 
-    TASKS.forEach(t => {
+    dynamicTasks.forEach(t => {
       html += `<div class="card"><h3 style="font-size:14px; margin-bottom:10px; color:var(--primary); font-weight:700;">${t.title}</h3>`;
       t.items.forEach(item => {
         const val = answers[item] || '';
@@ -683,13 +764,14 @@ async function switchStudentTab(tab, btn) {
   }
   else if (tab === 'tools') {
     container.innerHTML = `
-      <h2 style="margin-bottom:15px; font-size:20px;">Student Tools (20)</h2>
+      <h2 style="margin-bottom:15px; font-size:20px;">Student Tools</h2>
       <div class="tools-grid">
+        <div class="tool-card" onclick="renderPomodoro()"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div style="font-weight:700; font-size:12px;">Pomodoro</div></div>
+        <div class="tool-card" onclick="renderFlashcards()"><div class="tool-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg></div><div style="font-weight:700; font-size:12px;">Flashcards</div></div>
+        <div class="tool-card" onclick="renderNotes()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div><div style="font-weight:700; font-size:12px;">My Notes</div></div>
         <div class="tool-card" onclick="confetti()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div style="font-weight:700; font-size:12px;">Celebrate</div></div>
-        <div class="tool-card" onclick="alert('Timer Started: 25:00')"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div style="font-weight:700; font-size:12px;">Pomodoro</div></div>
-        <div class="tool-card" onclick="alert('Flashcards loaded!')"><div class="tool-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg></div><div style="font-weight:700; font-size:12px;">Flashcards</div></div>
-        <div class="tool-card" onclick="alert('Notes Saved')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div><div style="font-weight:700; font-size:12px;">My Notes</div></div>
       </div>
+      <div id="toolContent" style="margin-top:20px;"></div>
     `;
   }
   else if (tab === 'profile') {
@@ -719,22 +801,116 @@ async function studentGrade(item, val, btn) {
   group.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 
+  const wasAnswered = currentAssessment.answers && currentAssessment.answers[item];
   currentAssessment.answers = currentAssessment.answers || {};
   currentAssessment.answers[item] = val;
 
   await sb.from('assessments').upsert({ student_id: currentUser.id, answers: currentAssessment.answers, status: 'draft' }, { onConflict: 'student_id' });
   
-  // Give XP for checking! Add 10 XP per new check
-  const newXp = (currentUser.xp || 0) + 10;
-  await sb.from('users').update({ xp: newXp }).eq('id', currentUser.id);
-  currentUser.xp = newXp;
-  
+  if (!wasAnswered) {
+    const newXp = (currentUser.xp || 0) + 10;
+    await sb.from('users').update({ xp: newXp }).eq('id', currentUser.id);
+    currentUser.xp = newXp;
+    confetti({ particleCount: 30, spread: 50, origin: { y: 0.8 } });
+  }
+
   await sb.from('audit_logs').insert({ student_id: currentUser.id, action: 'Student Checked', details: `Marked "${item}" as ${val.toUpperCase()}` });
-  confetti({ particleCount: 30, spread: 50, origin: { y: 0.8 } });
 }
 
 /* ============================================================
-   CROP LOGIC (FIXED)
+   TOOLS FUNCTIONS (Pomodoro, Flashcards, Notes)
+   ============================================================ */
+function renderPomodoro() {
+  document.getElementById('toolContent').innerHTML = `
+    <div class="card">
+      <h3 style="text-align:center; margin-bottom:10px;">Pomodoro Timer</h3>
+      <div class="timer-display" id="pomoDisplay">25:00</div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-success" onclick="startPomo()">Start</button>
+        <button class="btn btn-danger" onclick="resetPomo()">Reset</button>
+      </div>
+    </div>
+  `;
+}
+function startPomo() {
+  if(pomoRunning) return;
+  pomoRunning = true;
+  pomoTimer = setInterval(() => {
+    pomoTime--;
+    let m = Math.floor(pomoTime / 60);
+    let s = pomoTime % 60;
+    document.getElementById('pomoDisplay').textContent = `${m}:${s < 10 ? '0'+s : s}`;
+    if(pomoTime <= 0) {
+      clearInterval(pomoTimer);
+      pomoRunning = false;
+      alert("Pomodoro finished! Take a break.");
+    }
+  }, 1000);
+}
+function resetPomo() {
+  clearInterval(pomoTimer);
+  pomoRunning = false;
+  pomoTime = 25 * 60;
+  if(document.getElementById('pomoDisplay')) document.getElementById('pomoDisplay').textContent = "25:00";
+}
+
+function renderFlashcards() {
+  let html = `
+    <div class="card">
+      <h3 style="margin-bottom:10px;">Flashcards</h3>
+      ${flashcards.length > 0 ? `
+        <div class="flashcard" onclick="flipCard()" id="fcDisplay">${flashcards[currentCardIndex].front}</div>
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+          <button class="btn btn-outline" onclick="prevCard()">← Prev</button>
+          <button class="btn btn-outline" onclick="nextCard()">Next →</button>
+        </div>
+      ` : `<p style="color:var(--text-muted); text-align:center; margin-bottom:10px;">No flashcards yet.</p>`}
+      
+      <div class="form-group"><input type="text" id="fcFront" placeholder="Front (Term)"></div>
+      <div class="form-group"><input type="text" id="fcBack" placeholder="Back (Definition)"></div>
+      <button class="btn" onclick="addFlashcard()">Add Card</button>
+    </div>
+  `;
+  document.getElementById('toolContent').innerHTML = html;
+}
+function flipCard() {
+  if(!flashcards.length) return;
+  showFront = !showFront;
+  document.getElementById('fcDisplay').textContent = showFront ? flashcards[currentCardIndex].front : flashcards[currentCardIndex].back;
+}
+function prevCard() { if(currentCardIndex > 0) { currentCardIndex--; showFront = true; renderFlashcards(); } }
+function nextCard() { if(currentCardIndex < flashcards.length - 1) { currentCardIndex++; showFront = true; renderFlashcards(); } }
+function addFlashcard() {
+  const f = document.getElementById('fcFront').value;
+  const b = document.getElementById('fcBack').value;
+  if(f && b) {
+    flashcards.push({ front: f, back: b });
+    localStorage.setItem('css_flashcards', JSON.stringify(flashcards));
+    renderFlashcards();
+  }
+}
+
+async function renderNotes() {
+  document.getElementById('toolContent').innerHTML = `
+    <div class="card">
+      <h3 style="margin-bottom:10px;">My Notes</h3>
+      <textarea id="notesArea" rows="8" style="width:100%; border:1px solid var(--border); border-radius:8px; padding:10px; background:var(--bg); color:var(--text-main); outline:none;" oninput="saveNotes()" placeholder="Type your notes here...">${currentUser.notes || ''}</textarea>
+      <p style="font-size:11px; color:var(--text-muted); margin-top:5px; text-align:right;">Auto-saved</p>
+    </div>
+  `;
+}
+let noteTimeout;
+function saveNotes() {
+  clearTimeout(noteTimeout);
+  noteTimeout = setTimeout(async () => {
+    const txt = document.getElementById('notesArea').value;
+    await sb.from('users').update({ notes: txt }).eq('id', currentUser.id);
+    currentUser.notes = txt;
+  }, 1000);
+}
+
+/* ============================================================
+   CROP LOGIC
    ============================================================ */
 function openCropper() {
   document.getElementById('cropperModal').classList.add('open');
@@ -797,7 +973,6 @@ async function saveCroppedImage() {
   const rect = imgEl.getBoundingClientRect();
   const containerRect = containerEl.getBoundingClientRect();
   
-  // Calculate visible crop area inside the 180x180 box
   const cropBoxX = (containerRect.width - 180) / 2;
   const cropBoxY = (containerRect.height - 180) / 2;
   
