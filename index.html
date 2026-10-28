@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0f172a">
-<title>CSS NC II - Assessment Portal v3.0</title>
+<title>CSS NC II - Assessment Portal v4.0</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -46,6 +46,7 @@ input, textarea { font-family: inherit; font-size: 14px; }
 .btn-danger { background: var(--danger); }
 .btn-success { background: var(--success); }
 .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text-main); }
+.btn-sm { padding: 8px 12px; font-size: 12px; width: auto; margin-top: 0; }
 .msg { text-align: center; color: var(--danger); font-size: 12px; margin-top: 15px; font-weight: 500; min-height: 18px; }
 
 /* APP SHELL */
@@ -53,7 +54,7 @@ input, textarea { font-family: inherit; font-size: 14px; }
 .header-left { display: flex; align-items: center; gap: 12px; }
 .avatar { width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 50%; display: grid; place-items: center; font-weight: 700; overflow: hidden; flex-shrink: 0; }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
-.content { padding: 16px; padding-bottom: calc(var(--bottom-nav) + 20px); max-width: 800px; margin: 0 auto; }
+.content { padding: 16px; padding-bottom: calc(var(--bottom-nav) + 80px); max-width: 800px; margin: 0 auto; }
 
 /* NAVIGATION & DRAWER */
 .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: var(--bottom-nav); background: var(--surface); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 50; padding-bottom: env(safe-area-inset-bottom); }
@@ -67,6 +68,10 @@ input, textarea { font-family: inherit; font-size: 14px; }
 .drawer-menu { flex: 1; overflow-y: auto; padding: 10px; }
 .drawer-item { padding: 14px 15px; border-radius: 8px; display: flex; align-items: center; gap: 12px; font-weight: 600; color: var(--text-main); transition: 0.2s; cursor: pointer; }
 .drawer-item:hover { background: var(--bg); }
+
+/* FLOATING REFRESH BUTTON */
+.fab-refresh { position: fixed; bottom: calc(var(--bottom-nav) + 20px); right: 20px; width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 45; cursor: pointer; transition: 0.3s; border: none; }
+.fab-refresh:hover { transform: rotate(180deg); background: var(--primary-hover); }
 
 /* CARDS & UI */
 .card { background: var(--surface); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
@@ -126,7 +131,7 @@ input, textarea { font-family: inherit; font-size: 14px; }
 
 /* CALCULATOR */
 .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-.calc-result { background: var(--bg); padding: 15px; border-radius: 8px; text-align: center; font-weight: 700; font-size: 16px; color: var(--primary); border: 1px solid var(--border); }
+.calc-result { background: var(--bg); padding: 15px; border-radius: 8px; text-align: left; font-weight: 500; font-size: 14px; color: var(--text-main); border: 1px solid var(--border); line-height: 1.6; }
 
 /* LOGS TIMELINE */
 .log-timeline { border-left: 2px solid var(--border); margin-left: 10px; padding-left: 15px; }
@@ -176,7 +181,7 @@ input, textarea { font-family: inherit; font-size: 14px; }
     <div id="registerLink" class="hidden" style="text-align:center; margin-top:15px; font-size:13px;">
       New student? <a href="#" onclick="showRegister(event)" style="color:var(--primary); font-weight:700; text-decoration:none;">Create Account</a>
     </div>
-    <div style="text-align:center; margin-top:20px; font-size:11px; color:var(--text-muted); font-weight:500;">Version 3.0</div>
+    <div style="text-align:center; margin-top:20px; font-size:11px; color:var(--text-muted); font-weight:500;">Version 4.0</div>
   </div>
 </div>
 
@@ -245,12 +250,17 @@ input, textarea { font-family: inherit; font-size: 14px; }
 
   <main class="content" id="mainContent"></main>
 
+  <!-- FLOATING REFRESH BUTTON -->
+  <button class="fab-refresh" onclick="refreshApp()" title="Refresh App">
+    <svg viewBox="0 0 24 24"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+  </button>
+
   <nav id="studentNav" class="bottom-nav hidden">
-    <button class="nav-btn active" onclick="switchStudentTab('home', this)"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Home</button>
-    <button class="nav-btn" onclick="switchStudentTab('tasks', this)"><svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Tasks</button>
-    <button class="nav-btn" onclick="switchStudentTab('leaderboard', this)"><svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>Ranks</button>
-    <button class="nav-btn" onclick="switchStudentTab('tools', this)"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</button>
-    <button class="nav-btn" onclick="switchStudentTab('profile', this)"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Profile</button>
+    <button id="nav-home" class="nav-btn active" onclick="switchStudentTab('home', this)"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Home</button>
+    <button id="nav-tasks" class="nav-btn" onclick="switchStudentTab('tasks', this)"><svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Tasks</button>
+    <button id="nav-ranks" class="nav-btn" onclick="switchStudentTab('leaderboard', this)"><svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>Ranks</button>
+    <button id="nav-tools" class="nav-btn" onclick="switchStudentTab('tools', this)"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</button>
+    <button id="nav-profile" class="nav-btn" onclick="switchStudentTab('profile', this)"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Profile</button>
   </nav>
 </div>
 
@@ -352,11 +362,26 @@ function togglePassword(inputId, btn) {
 }
 
 async function fetchTasks() {
-  const { data } = await sb.from('custom_tasks').select('*').order('created_at');
-  dynamicTasks = [...BASE_TASKS];
+  const { data } = await sb.from('custom_tasks').select('*');
+  let tasks = BASE_TASKS.map(t => ({...t}));
+
   if (data) {
-    data.forEach(t => dynamicTasks.push({ id: t.id, title: t.title, items: t.items }));
+    const deletedBaseIds = data.filter(d => d.is_deleted && d.original_id).map(d => d.original_id);
+    const deletedCustomIds = data.filter(d => d.is_deleted && !d.original_id).map(d => d.id);
+    tasks = tasks.filter(t => !deletedBaseIds.includes(t.id));
+
+    data.filter(d => !d.is_deleted && d.original_id).forEach(edit => {
+      const t = tasks.find(x => x.id === edit.original_id);
+      if (t) t.title = edit.title;
+    });
+
+    data.filter(d => !d.is_deleted && !d.original_id).forEach(newTask => {
+      if(!deletedCustomIds.includes(newTask.id)) {
+         tasks.push({ id: newTask.id, title: newTask.title, items: newTask.items });
+      }
+    });
   }
+  dynamicTasks = tasks;
 }
 
 async function initTeacher() {
@@ -367,7 +392,6 @@ async function initTeacher() {
       name: 'Jayson Amicane', role: 'teacher', status: 'approved', xp: 9999
     }]);
   } else {
-    // Ensure name is Jayson Amicane for this version
     await sb.from('users').update({ name: 'Jayson Amicane' }).eq('username', 'emnace');
   }
 }
@@ -446,11 +470,14 @@ async function loginSuccess(user) {
   if (user.role === 'teacher') {
     document.getElementById('menuBtn').classList.remove('hidden');
     document.getElementById('studentNav').classList.add('hidden');
-    switchView('dashboard');
+    const savedView = sessionStorage.getItem('css_teacher_view');
+    if(savedView) switchView(savedView);
+    else switchView('dashboard');
   } else {
     document.getElementById('menuBtn').classList.add('hidden');
     document.getElementById('studentNav').classList.remove('hidden');
-    switchStudentTab('home', document.querySelectorAll('.nav-btn')[0]);
+    const savedTab = sessionStorage.getItem('css_active_tab') || 'home';
+    switchStudentTab(savedTab, document.getElementById('nav-'+savedTab));
   }
 }
 
@@ -459,6 +486,7 @@ function logout() {
   if(pomoTimer) clearInterval(pomoTimer);
   currentUser = null;
   localStorage.removeItem('css_session');
+  sessionStorage.clear();
   document.getElementById('appShell').classList.add('hidden');
   document.getElementById('pendingScreen').classList.add('hidden');
   document.getElementById('loginScreen').classList.remove('hidden');
@@ -496,6 +524,7 @@ function openScanner() {
 function closeScanner() { if (html5QrCode) { html5QrCode.stop().then(() => { html5QrCode.clear(); }).catch(()=>{}); } document.getElementById('scannerModal').classList.remove('open'); }
 
 async function switchView(view) {
+  sessionStorage.setItem('css_teacher_view', view);
   if (document.getElementById('teacherDrawer').classList.contains('open')) toggleDrawer();
   const container = document.getElementById('mainContent');
   container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="border-color:var(--primary); border-top-color:transparent; margin:0 auto;"></div></div>';
@@ -556,26 +585,41 @@ async function switchView(view) {
       <h2 style="margin-bottom:15px; font-size:20px;">Teacher Tools</h2>
       <div class="tools-grid">
         <div class="tool-card" onclick="openScanner()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></div><div style="font-weight:700; font-size:12px;">Scan QR</div></div>
-        <div class="tool-card" onclick="openAddTaskModal()"><div class="tool-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></div><div style="font-weight:700; font-size:12px;">Add Task</div></div>
+        <div class="tool-card" onclick="switchView('manageTasks')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div><div style="font-weight:700; font-size:12px;">Manage Tasks</div></div>
         <div class="tool-card" onclick="exportCSV()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></div><div style="font-weight:700; font-size:12px;">Export CSV</div></div>
         <div class="tool-card" onclick="pickRandomStudent()"><div class="tool-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></div><div style="font-weight:700; font-size:12px;">Random Picker</div></div>
         <div class="tool-card" onclick="confetti()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div style="font-weight:700; font-size:12px;">Celebrate</div></div>
         <div class="tool-card" onclick="alert('Class Average: ' + Math.round(document.querySelectorAll('.stat-box h3')[0]?.innerText || 0) + '%')"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div><div style="font-weight:700; font-size:12px;">Class Avg</div></div>
       </div>
-      
-      <div id="addTaskSection" class="card hidden" style="margin-top:20px;">
+    `;
+  }
+  else if (view === 'manageTasks') {
+    let html = `<button onclick="switchView('teacherTools')" style="margin-bottom:15px; font-weight:700; color:var(--primary);">← Back</button>
+    <h2 style="margin-bottom:15px; font-size:20px;">Manage Tasks</h2>
+    <button class="btn btn-success" style="margin-bottom:15px;" onclick="openAddTaskModal()">+ Add New Task</button>
+    <div id="addTaskSection" class="card hidden" style="margin-bottom:15px;">
         <h3 style="margin-bottom:10px;">Add New Competency</h3>
         <div class="form-group"><label>Task Title</label><input type="text" id="newTaskTitle" placeholder="e.g. Task 8: Networking"></div>
-        <div class="form-group"><label>Items (Comma Separated)</label><textarea id="newTaskItems" rows="3" placeholder="Crimp cable, Test connection, Configure IP"></textarea></div>
-        <button class="btn btn-success" onclick="saveNewTask()">Save Task</button>
-      </div>
-    `;
+        <div class="form-group"><label>Items (Comma Separated)</label><textarea id="newTaskItems" rows="3" placeholder="Crimp cable, Test connection"></textarea></div>
+        <button class="btn btn-primary" onclick="saveNewTask()">Save Task</button>
+    </div>`;
+    
+    dynamicTasks.forEach(t => {
+      html += `
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-weight:700;">${t.title}</div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-outline btn-sm" onclick="editTaskTitle('${t.id}', '${t.title.replace(/'/g, "\\'")}')">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteTask('${t.id}')">Delete</button>
+          </div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
   }
 }
 
-function openAddTaskModal() {
-  document.getElementById('addTaskSection').classList.toggle('hidden');
-}
+function openAddTaskModal() { document.getElementById('addTaskSection').classList.toggle('hidden'); }
 
 async function saveNewTask() {
   const title = document.getElementById('newTaskTitle').value;
@@ -588,10 +632,32 @@ async function saveNewTask() {
   if(!error) {
     alert("Task Added Successfully!");
     await fetchTasks(); 
-    switchView('teacherTools');
+    switchView('manageTasks');
+  } else { alert("Error: " + error.message); }
+}
+
+async function editTaskTitle(id, oldTitle) {
+  const newTitle = prompt("Enter new task title:", oldTitle);
+  if(!newTitle || newTitle === oldTitle) return;
+  
+  if(id.startsWith('t')) {
+    await sb.from('custom_tasks').insert([{ original_id: id, title: newTitle, items: [], is_deleted: false }]);
   } else {
-    alert("Error: " + error.message);
+    await sb.from('custom_tasks').update({ title: newTitle }).eq('id', id);
   }
+  await fetchTasks();
+  switchView('manageTasks');
+}
+
+async function deleteTask(id) {
+  if(!confirm("Delete this task permanently?")) return;
+  if(id.startsWith('t')) {
+    await sb.from('custom_tasks').insert([{ original_id: id, title: 'Deleted', items: [], is_deleted: true }]);
+  } else {
+    await sb.from('custom_tasks').delete().eq('id', id);
+  }
+  await fetchTasks();
+  switchView('manageTasks');
 }
 
 async function exportCSV() {
@@ -628,6 +694,7 @@ async function pickRandomStudent() {
 }
 
 async function viewStudentDetail(studentId) {
+  sessionStorage.setItem('css_teacher_student', studentId);
   const container = document.getElementById('mainContent');
   container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="border-color:var(--primary); border-top-color:transparent; margin:0 auto;"></div></div>';
   const { data: student } = await sb.from('users').select('*').eq('id', studentId).single();
@@ -730,17 +797,70 @@ async function teacherGrade(studentId, item, val, btn) {
   await sb.from('assessments').upsert({ student_id: studentId, answers, status: 'reviewed' }, { onConflict: 'student_id' });
   await sb.from('audit_logs').insert({ student_id: studentId, action: 'Teacher Update', details: logAction });
   
-  // RECALCULATE XP AND PROGRESS
   await recalculateStudent(studentId);
 }
 
-function openTeacherProfile() { toggleDrawer(); openCropper(); }
+function openTeacherProfile() {
+  toggleDrawer();
+  sessionStorage.setItem('css_teacher_view', 'profile');
+  const container = document.getElementById('mainContent');
+  container.innerHTML = `
+    <h2 style="margin-bottom:15px; font-size:20px;">My Profile</h2>
+    <div class="card" style="text-align:center;">
+      <div class="avatar" style="width:100px; height:100px; font-size:40px; margin:0 auto 15px;">${currentUser.profile_picture ? `<img src="${currentUser.profile_picture}">` : (currentUser.name||'U').charAt(0)}</div>
+      
+      <h2 style="font-size:20px; display:flex; align-items:center; justify-content:center; gap:10px;">
+        ${currentUser.name}
+        <button onclick="editTeacherName()" style="background:var(--bg); border:1px solid var(--border); border-radius:50%; width:32px; height:32px; display:grid; place-items:center;">
+          <svg viewBox="0 0 24 24" style="width:14px; height:14px;"><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        </button>
+      </h2>
+      
+      <p style="color:var(--text-muted); margin-bottom:15px;">Teacher</p>
+      
+      <button class="btn btn-outline" onclick="openCropper()" style="margin-bottom:20px;">
+        Edit Profile Picture
+      </button>
+      
+      <div style="text-align:left;">
+        <div style="margin-bottom:10px;"><strong>Username:</strong> ${currentUser.username}</div>
+        <div style="margin-bottom:10px;"><strong>Role:</strong> Trainer</div>
+      </div>
+    </div>
+  `;
+}
+
+async function editTeacherName() {
+  const newName = prompt("Enter your new name:", currentUser.name);
+  if (!newName || newName.trim() === '' || newName === currentUser.name) return;
+
+  const cleanName = newName.trim();
+
+  const { error } = await sb.from('users').update({ name: cleanName }).eq('id', currentUser.id);
+
+  if (error) {
+    alert("Error updating name: " + error.message);
+    return;
+  }
+
+  currentUser.name = cleanName;
+  localStorage.setItem('css_session', JSON.stringify(currentUser));
+
+  document.getElementById('userNameDisplay').textContent = cleanName;
+  const avatarEl = document.getElementById('userAvatar');
+  if(!currentUser.profile_picture) {
+    avatarEl.textContent = cleanName.charAt(0).toUpperCase();
+  }
+
+  await sb.from('audit_logs').insert({ student_id: currentUser.id, action: 'Profile Update', details: 'Changed teacher name' });
+
+  openTeacherProfile();
+}
 
 /* ============================================================
    STUDENT LOGIC
    ============================================================ */
 async function recalculateStudent(studentId) {
-  // Syncs XP based on current 'yes' answers
   const { data: assessment } = await sb.from('assessments').select('answers').eq('student_id', studentId).single();
   let answers = assessment?.answers || {};
   
@@ -749,12 +869,12 @@ async function recalculateStudent(studentId) {
     if (v === 'yes') yesCount++;
   });
 
-  // 10 XP per correctly completed task
   const newXp = yesCount * 10;
   await sb.from('users').update({ xp: newXp }).eq('id', studentId);
 }
 
 async function switchStudentTab(tab, btn) {
+  sessionStorage.setItem('css_active_tab', tab);
   document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active'));
   if (btn) btn.classList.add('active');
   const container = document.getElementById('mainContent');
@@ -780,7 +900,6 @@ async function switchStudentTab(tab, btn) {
     const circumference = 2 * Math.PI * 45; 
     const strokeDashoffset = circumference - (progress / 100) * circumference;
 
-    // AUTO SHOW CERTIFICATE
     if (progress === 100 && !sessionStorage.getItem('cert_shown')) {
         sessionStorage.setItem('cert_shown', 'true');
         openCertificate();
@@ -813,7 +932,7 @@ async function switchStudentTab(tab, btn) {
         ${progress === 100 ? `
           <button class="btn btn-success" onclick="openCertificate()">🏆 View Certificate</button>
         ` : `
-          <button class="btn" onclick="switchStudentTab('tasks', document.querySelectorAll('.nav-btn')[1])">Continue Tasks</button>
+          <button class="btn" onclick="switchStudentTab('tasks', document.getElementById('nav-tasks'))">Continue Tasks</button>
         `}
       </div>
     `;
@@ -904,7 +1023,6 @@ async function studentGrade(item, val, btn) {
   const group = btn.parentElement;
   const isAlreadyActive = btn.classList.contains('active');
 
-  // Optimistic UI Update (prevents bugs)
   group.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
 
   const wasAnswered = currentAssessment.answers && currentAssessment.answers[item];
@@ -923,7 +1041,6 @@ async function studentGrade(item, val, btn) {
   await sb.from('assessments').upsert({ student_id: currentUser.id, answers: currentAssessment.answers, status: 'draft' }, { onConflict: 'student_id' });
   await sb.from('audit_logs').insert({ student_id: currentUser.id, action: 'Student Update', details: logAction });
   
-  // RECALCULATE
   await recalculateStudent(currentUser.id);
 }
 
@@ -1021,7 +1138,7 @@ function renderCalculator() {
       </div>
 
       <div class="calc-result" id="calcResult">
-        Partition 1: 200.00 GB<br>Partition 2: 300.00 GB
+        Loading...
       </div>
     </div>
   `;
@@ -1029,10 +1146,19 @@ function renderCalculator() {
     let total = parseFloat(document.getElementById('totalSize').value) || 0;
     let p1 = parseFloat(document.getElementById('p1Percent').value) || 0;
     let p2 = parseFloat(document.getElementById('p2Percent').value) || 0;
-    let p1Size = (total * p1 / 100).toFixed(2);
-    let p2Size = (total * p2 / 100).toFixed(2);
-    document.getElementById('calcResult').innerHTML = `Partition 1: ${p1Size} GB<br>Partition 2: ${p2Size} GB`;
+    
+    let p1SizeGB = (total * p1 / 100);
+    let p2SizeGB = (total * p2 / 100);
+    
+    let p1SizeMB = p1SizeGB * 1024;
+    let p2SizeMB = p2SizeGB * 1024;
+    
+    document.getElementById('calcResult').innerHTML = `
+      <div style="margin-bottom:5px;"><strong>Partition 1 (${p1}%):</strong><br>${p1SizeGB.toFixed(2)} GB / ${p1SizeMB.toFixed(0)} MB</div>
+      <div><strong>Partition 2 (${p2}%):</strong><br>${p2SizeGB.toFixed(2)} GB / ${p2SizeMB.toFixed(0)} MB</div>
+    `;
   };
+  calcPartition();
 }
 
 function renderFlashcards() {
@@ -1114,78 +1240,58 @@ function drawCertificate() {
   ctx.strokeStyle = "#e2e8f0";
   ctx.lineWidth = 4;
   ctx.strokeRect(40, 40, 720, 520);
-
-  // Gold Seal
-  ctx.beginPath();
-  ctx.arc(400, 500, 40, 0, Math.PI * 2);
-  ctx.fillStyle = "#fbbf24";
-  ctx.fill();
-  ctx.strokeStyle = "#b45309";
-  ctx.lineWidth = 3;
-  ctx.stroke();
-  ctx.fillStyle = "#78350f";
-  ctx.font = "bold 14px sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("SEAL", 400, 505);
   
   // Title
   ctx.fillStyle = "#1e3a8a";
   ctx.font = "bold 42px sans-serif";
-  ctx.fillText("CERTIFICATE OF COMPLETION", 400, 120);
+  ctx.textAlign = "center";
+  ctx.fillText("CERTIFICATE OF COMPLETION", 400, 140);
   
   // Subtitle
   ctx.fillStyle = "#64748b";
   ctx.font = "20px sans-serif";
-  ctx.fillText("This is to certify that", 400, 180);
+  ctx.fillText("This is to certify that", 400, 210);
   
   // Name
   ctx.fillStyle = "#0f172a";
   ctx.font = "bold 48px sans-serif";
-  ctx.fillText(currentUser.name.toUpperCase(), 400, 250);
+  ctx.fillText(currentUser.name.toUpperCase(), 400, 290);
   
   // Body text
   ctx.fillStyle = "#64748b";
   ctx.font = "18px sans-serif";
-  ctx.fillText("has successfully completed the Practical Assessment for", 400, 310);
+  ctx.fillText("has successfully completed the Practical Assessment for", 400, 350);
   
   ctx.fillStyle = "#2563eb";
   ctx.font = "bold 22px sans-serif";
-  ctx.fillText("Computer Systems Servicing NC II", 400, 345);
+  ctx.fillText("Computer Systems Servicing NC II", 400, 390);
   
   ctx.fillStyle = "#0f172a";
   ctx.font = "bold 18px sans-serif";
-  ctx.fillText("Unit Code 1: Windows Installation and Apps", 400, 380);
+  ctx.fillText("Unit Code 1: Install and configure of computer systems", 400, 425);
   
   // Date
   ctx.fillStyle = "#64748b";
   ctx.font = "16px sans-serif";
   const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  ctx.fillText(`Awarded on ${dateStr}`, 400, 425);
+  ctx.fillText(`Awarded on ${dateStr}`, 400, 475);
   
-  // Signatures
-  ctx.font = "16px sans-serif";
+  // Signature (Centered)
   ctx.strokeStyle = "#0f172a";
   ctx.lineWidth = 1;
   
-  // Line 1 (Trainer)
   ctx.beginPath();
-  ctx.moveTo(200, 520);
-  ctx.lineTo(350, 520);
+  ctx.moveTo(300, 530);
+  ctx.lineTo(500, 530);
   ctx.stroke();
-  ctx.fillStyle = "#0f172a";
-  ctx.fillText("Jayson Amicane", 275, 540);
-  ctx.fillStyle = "#64748b";
-  ctx.font = "12px sans-serif";
-  ctx.fillText("Trainer", 275, 555);
   
-  // Line 2 (Admin)
-  ctx.beginPath();
-  ctx.moveTo(450, 520);
-  ctx.lineTo(600, 520);
-  ctx.stroke();
   ctx.fillStyle = "#0f172a";
-  ctx.font = "16px sans-serif";
-  ctx.fillText("School Administrator", 525, 540);
+  ctx.font = "bold 18px sans-serif";
+  ctx.fillText("Jayson Amicane", 400, 555);
+  
+  ctx.fillStyle = "#64748b";
+  ctx.font = "14px sans-serif";
+  ctx.fillText("Trainer", 400, 575);
 }
 
 function downloadCertificate() {
@@ -1282,15 +1388,19 @@ async function saveCroppedImage() {
   
   closeModal('cropperModal');
   if(currentUser.role === 'teacher') {
-    switchView('dashboard');
+    openTeacherProfile();
   } else {
-    switchStudentTab('profile', document.querySelectorAll('.nav-btn')[4]);
+    switchStudentTab('profile', document.getElementById('nav-profile'));
   }
 }
 
 /* ============================================================
-   UTILS
+   UTILS & REFRESH
    ============================================================ */
+function refreshApp() {
+  window.location.reload();
+}
+
 function toggleTheme() { document.body.classList.toggle('dark'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 </script>
