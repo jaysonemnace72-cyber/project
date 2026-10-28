@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d1829">
+<title>CSS NC II — Assessment Portal</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f7fb;--surface:#fff;--border:#e3e9f0;--border-2:#cfd8e3;
+  --ink:#0d1829;--muted:#5c6b82;--faint:#94a3b8;
+  --accent:#2563eb;--accent-dk:#1d4ed8;--accent-lt:#eff6ff;
+  --yes:#059669;--yes-bg:#ecfdf5;--no:#dc2626;--no-bg:#fef2f2;
+  --amber:#f59e0b;--amber-bg:#fffbeb;--purple:#7c3aed;
+  --r:12px;--r-sm:8px;
+  --sh:0 1px 2px rgba(15,23,42,.04),0 4px 12px -6px rgba(15,23,42,.08);
+  --sh-lg:0 24px 48px -20px rgba(15,23,42,.25);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:pan-x pan-y}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
+button,input,textarea,select{font-family:inherit;font-size:inherit;-webkit-tap-highlight-color:transparent}
+button{cursor:pointer}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.hidden{display:none!important}
+
+/* ===== FULL-PAGE AUTH SCREENS ===== */
+.auth-screen{min-height:100vh;min-height:100dvh;display:grid;place-items:center;background:radial-gradient(1200px 600px at 10% 10%,#1e3a8a 0%,#0d1829 60%,#060b16 100%);padding:20px;position:relative;overflow:hidden}
+.auth-screen::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 20% 80%,rgba(37,99,235,.15) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(99,102,241,.12) 0%,transparent 50%);pointer-events:none}
+.auth-card{position:relative;z-index:1;background:#fff;border-radius:18px;padding:32px 28px 24px;width:100%;max-width:420px;box-shadow:var(--sh-lg);animation:slideUp .45s cubic-bezier(.2,.9,.3,1.1);max-height:calc(100vh - 40px);overflow-y:auto}
+.auth-card.wide{max-width:560px}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.auth-brand{text-align:center;margin-bottom:22px}
+.auth-logo{width:56px;height:56px;margin:0 auto 12px;border-radius:14px;background:linear-gradient(135deg,#2563eb,#4f46e5);display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px;letter-spacing:.8px;box-shadow:0 10px 24px -8px rgba(37,99,235,.6),inset 0 1px 0 rgba(255,255,255,.2)}
+.auth-brand h1{font-size:18px;font-weight:800;letter-spacing:-.3px;margin-bottom:3px}
+.auth-brand p{font-size:11.5px;color:var(--muted)}
+.auth-tabs{display:flex;background:#eef2f7;border-radius:10px;padding:3px;margin-bottom:18px;gap:3px}
+.auth-tabs button{flex:1;border:0;background:transparent;padding:9px 12px;border-radius:7px;font-weight:700;font-size:12px;color:var(--muted);transition:.15s}
+.auth-tabs button.active{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.auth-form{display:flex;flex-direction:column;gap:11px}
+.auth-form label{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--faint);margin-bottom:-6px}
+.auth-form input,.auth-form select{width:100%;padding:11px 13px;border-radius:9px;border:1.5px solid var(--border);background:#fff;color:var(--ink);font-size:13.5px;outline:none;transition:.15s}
+.auth-form input:focus,.auth-form select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.13)}
+.auth-form input:invalid:not(:placeholder-shown){border-color:#fca5a5}
+.auth-row{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+@media (max-width:480px){.auth-row{grid-template-columns:1fr}}
+.auth-btn{width:100%;padding:12px;margin-top:6px;border:0;border-radius:9px;background:linear-gradient(135deg,#2563eb,#4f46e5);color:#fff;font-weight:800;font-size:13.5px;letter-spacing:.3px;box-shadow:0 8px 18px -6px rgba(37,99,235,.55);transition:.15s}
+.auth-btn:hover{transform:translateY(-1px);box-shadow:0 12px 24px -6px rgba(37,99,235,.65)}
+.auth-btn:active{transform:none}
+.auth-btn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
+.auth-msg{min-height:18px;font-size:12px;text-align:center;font-weight:600;color:var(--no);margin-top:2px}
+.auth-msg.success{color:var(--yes)}
+.auth-switch{text-align:center;font-size:12.5px;color:var(--muted);margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.auth-switch a{font-weight:700}
+.auth-footer{margin-top:16px;font-size:10.5px;color:var(--faint);text-align:center;line-height:1.6}
+.setup-banner{background:var(--amber-bg);border:1px solid #fde68a;color:#92400e;border-radius:8px;padding:9px 12px;font-size:11px;margin-bottom:12px;line-height:1.5}
+.setup-banner b{display:block;margin-bottom:2px}
+
+/* ===== APP BAR ===== */
+.app-bar{background:linear-gradient(180deg,#0d1829 0%,#111f36 100%);color:#fff;padding:0 16px;position:sticky;top:0;z-index:40;border-bottom:1px solid rgba(255,255,255,.06);box-shadow:0 2px 14px -6px rgba(0,0,0,.35)}
+.app-bar-inner{max-width:1440px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;flex-wrap:nowrap;padding:8px 0}
+.app-brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.sidebar-toggle{display:none;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#fff;width:36px;height:36px;border-radius:8px;font-size:16px;flex:none;align-items:center;justify-content:center}
+.app-logo{width:34px;height:34px;border-radius:9px;flex:none;background:linear-gradient(135deg,#2563eb,#4f46e5);display:grid;place-items:center;font-weight:800;font-size:11.5px;letter-spacing:.5px;color:#fff;box-shadow:0 4px 14px -4px rgba(37,99,235,.6),inset 0 1px 0 rgba(255,255,255,.18)}
+.app-brand-text{min-width:0}
+.app-brand h1{font-size:13.5px;font-weight:700;letter-spacing:-.1px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app-brand p{font-size:10.5px;color:#94a3b8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app-user{display:flex;align-items:center;gap:10px;flex:none}
+.user-info{text-align:right;line-height:1.25;display:none}
+@media (min-width:640px){.user-info{display:block}}
+.user-info b{font-size:12px;display:block}
+.user-info small{font-size:9.5px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+
+/* ===== BUTTONS ===== */
+.btn{font-size:12px;font-weight:700;padding:8px 14px;border-radius:8px;border:1px solid transparent;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:.15s;white-space:nowrap;line-height:1}
+.btn:active{transform:translateY(.5px)}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 4px 12px -4px rgba(37,99,235,.55)}
+.btn-primary:hover{background:var(--accent-dk)}
+.btn-ghost{background:#fff;color:var(--ink);border-color:var(--border)}
+.btn-ghost:hover{border-color:var(--border-2);background:#fafbfd}
+.btn-light{background:rgba(255,255,255,.08);color:#e6edf6;border-color:rgba(255,255,255,.16)}
+.btn-light:hover{background:rgba(255,255,255,.16)}
+.btn-danger{background:#fff;color:var(--no);border-color:#fecaca}
+.btn-danger:hover{background:var(--no-bg)}
+.btn-success{background:var(--yes);color:#fff;box-shadow:0 4px 12px -4px rgba(5,150,105,.55)}
+.btn-success:hover{background:#047857}
+.btn-block{width:100%}
+.btn-sm{padding:6px 11px;font-size:11px}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none!important}
+.icon-btn{background:transparent;border:0;font-size:17px;color:var(--muted);padding:6px;border-radius:6px;line-height:1}
+.icon-btn:hover{background:#f1f5f9;color:var(--ink)}
+.logout-btn{padding:7px 12px;font-size:11.5px}
+
+/* ===== TEACHER LAYOUT ===== */
+.app-layout{max-width:1440px;margin:16px auto 40px;padding:0 16px;display:grid;grid-template-columns:280px minmax(0,1fr);gap:16px;align-items:start}
+.teacher-side{position:sticky;top:72px;background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;max-height:calc(100vh - 96px);overflow:hidden}
+.side-section{padding:12px 12px 8px;border-bottom:1px solid var(--border)}
+.side-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.side-head h3{font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--faint)}
+.search-input{width:100%;padding:8px 10px;border-radius:7px;border:1.5px solid var(--border);background:#fafbfd;color:var(--ink);font-size:12px;outline:none;transition:.15s}
+.search-input:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.student-list{flex:1;overflow-y:auto;padding:6px;max-height:calc(100vh - 320px)}
+.student-item{padding:9px 10px;border-radius:8px;margin-bottom:2px;cursor:pointer;transition:.12s;border-left:3px solid transparent}
+.student-item:hover{background:#f8fafc}
+.student-item.active{background:var(--accent-lt);border-left-color:var(--accent)}
+.student-item-name{font-weight:700;font-size:12px;margin-bottom:3px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.student-item-meta{font-size:10px;color:var(--muted);display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.student-item-empty{padding:24px 12px;text-align:center;color:var(--faint);font-size:12px;line-height:1.6}
+.side-actions{padding:10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(13,24,41,.55);z-index:55;backdrop-filter:blur(2px)}
+.sidebar-backdrop.open{display:block}
+.status-badge{font-size:9px;font-weight:800;letter-spacing:.5px;padding:2px 6px;border-radius:4px;text-transform:uppercase;display:inline-block;line-height:1.5}
+.status-draft{background:#f1f5f9;color:var(--muted)}
+.status-pending{background:var(--purple);color:#fff}
+.status-submitted{background:var(--amber-bg);color:#92400e}
+.status-reviewed{background:var(--yes-bg);color:#065f46}
+.status-incomplete{background:var(--no-bg);color:var(--no)}
+
+/* ===== MAIN CONTENT ===== */
+.teacher-main{min-width:0;display:flex;flex-direction:column;gap:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);padding:16px}
+.dash-header{padding:20px 20px;background:linear-gradient(135deg,#0d1829 0%,#1e3a8a 100%);color:#fff;border-radius:var(--r);box-shadow:var(--sh-lg)}
+.dash-header h2{font-size:19px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px}
+.dash-header p{font-size:12.5px;color:#c7d2fe}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;box-shadow:var(--sh)}
+.stat-label{font-size:9.5px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.stat-value{font-size:22px;font-weight:800;letter-spacing:-1px;line-height:1;font-variant-numeric:tabular-nums}
+.stat-sub{font-size:10.5px;color:var(--muted);margin-top:4px}
+.section-title{font-size:12.5px;font-weight:800;letter-spacing:.2px;margin-bottom:11px;display:flex;justify-content:space-between;align-items:center}
+.activity-list{display:flex;flex-direction:column;gap:7px}
+.activity-item{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;background:#f8fafc;border-radius:7px;font-size:12px}
+.activity-icon{width:24px;height:24px;border-radius:6px;flex:none;background:#fff;display:grid;place-items:center;font-size:11px;border:1px solid var(--border)}
+.activity-body{flex:1;min-width:0}
+.activity-text{color:var(--ink);line-height:1.4}
+.activity-time{font-size:10px;color:var(--faint);margin-top:2px}
+
+/* ===== ASSESSMENT EDITOR ===== */
+.assess-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding-bottom:12px;margin-bottom:4px;border-bottom:1px solid var(--border)}
+.assess-head h2{font-size:16px;font-weight:800;letter-spacing:-.2px;margin-bottom:2px}
+.assess-head p{font-size:12px;color:var(--muted);line-height:1.6}
+.assess-actions{display:flex;gap:6px;flex-wrap:wrap}
+.task-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;align-items:start}
+.task-card{padding:13px 15px}
+.task-head{display:flex;gap:10px;align-items:flex-start;padding-bottom:9px;margin-bottom:5px;border-bottom:1px solid var(--border)}
+.task-num{width:22px;height:22px;border-radius:6px;flex:none;background:var(--accent-lt);color:var(--accent);display:grid;place-items:center;font-weight:800;font-size:11px;border:1px solid #dbeafe}
+.task-info{flex:1;min-width:0}
+.task-info h3{font-size:10.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;line-height:1.3;margin-bottom:1px}
+.task-info p{font-size:10.5px;color:var(--muted);line-height:1.35}
+.task-score{font-size:10px;font-weight:800;color:var(--muted);background:#f1f5f9;padding:2px 7px;border-radius:5px;flex:none;font-variant-numeric:tabular-nums}
+.task-score.complete{background:#dcfce7;color:#166534}
+.item{display:flex;align-items:center;gap:8px;padding:6px 7px;border-radius:6px;transition:background .12s}
+.item + .item{margin-top:1px}
+.item[data-state="yes"]{background:var(--yes-bg)}
+.item[data-state="no"]{background:var(--no-bg)}
+.item-text{flex:1;font-size:12px;line-height:1.4;min-width:0}
+.item[data-state="yes"] .item-text{color:#065f46}
+.item[data-state="no"] .item-text{color:#991b1b}
+.toggle{display:inline-flex;flex:none;background:#eef2f7;border-radius:6px;padding:2px;gap:2px}
+.toggle button{border:0;background:transparent;font-size:9.5px;font-weight:800;letter-spacing:.4px;padding:5px 10px;border-radius:4px;color:var(--muted);transition:.12s;line-height:1}
+.toggle button.t-yes.active{background:var(--yes);color:#fff}
+.toggle button.t-no.active{background:var(--no);color:#fff}
+.toggle button:disabled{opacity:.55;cursor:not-allowed}
+
+textarea{width:100%;min-height:76px;resize:vertical;font-size:13px;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);outline:none;color:var(--ink);transition:.15s;line-height:1.5}
+textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+
+/* ===== STUDENT VIEW ===== */
+.student-layout{max-width:1100px;margin:18px auto 40px;padding:0 16px;display:flex;flex-direction:column;gap:14px}
+.welcome-card{padding:22px 22px;background:linear-gradient(135deg,#0d1829 0%,#1e3a8a 60%,#2563eb 100%);color:#fff;border-radius:var(--r);box-shadow:var(--sh-lg);position:relative;overflow:hidden}
+.welcome-card::after{content:'';position:absolute;top:-40%;right:-10%;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.1) 0%,transparent 70%);pointer-events:none}
+.welcome-card h1{font-size:20px;font-weight:800;letter-spacing:-.4px;margin-bottom:4px;position:relative}
+.welcome-card p{font-size:12.5px;color:#c7d2fe;position:relative;margin-bottom:12px}
+.welcome-badges{display:flex;gap:6px;flex-wrap:wrap;position:relative}
+.welcome-badge{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);padding:5px 10px;border-radius:7px;font-size:11px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:5px}
+.student-stats{display:grid;grid-template-columns:220px 1fr;gap:12px;align-items:stretch}
+@media (max-width:700px){.student-stats{grid-template-columns:1fr}}
+.ring-wrap{background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);padding:18px;display:flex;flex-direction:column;align-items:center;gap:9px}
+.ring{width:130px;height:130px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#cbd5e1 0deg,#eef2f7 0deg);transition:background .4s ease}
+.ring-inner{width:102px;height:102px;border-radius:50%;background:#fff;display:grid;place-items:center;text-align:center;box-shadow:inset 0 0 0 1px #f1f5f9}
+.ring-score{font-size:30px;font-weight:800;letter-spacing:-1.5px;line-height:1;font-variant-numeric:tabular-nums}
+.ring-total{font-size:10.5px;font-weight:700;color:var(--faint);margin-top:3px}
+.stat-list{background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);padding:14px 16px;display:flex;flex-direction:column;justify-content:center}
+.stat-row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;padding:7px 0;border-bottom:1px dashed var(--border)}
+.stat-row:last-child{border-bottom:0}
+.stat-row span{display:flex;align-items:center;gap:7px;color:var(--muted)}
+.stat-row b{font-weight:800;font-variant-numeric:tabular-nums}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.student-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 14px;background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh)}
+.student-actions .spacer{flex:1;min-width:0}
+.status-note{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.review-note{background:var(--yes-bg);border:1px solid #bbf7d0;color:#065f46;padding:12px 14px;border-radius:8px;font-size:12.5px;display:flex;gap:10px;align-items:flex-start}
+.review-note b{display:block;margin-bottom:2px}
+
+/* ===== MODAL ===== */
+.modal{position:fixed;inset:0;background:rgba(13,24,41,.55);display:none;place-items:center;padding:16px;z-index:80;backdrop-filter:blur(3px);overflow-y:auto}
+.modal.open{display:grid}
+.modal-box{background:#fff;border-radius:14px;width:min(560px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 70px -20px rgba(0,0,0,.5);animation:modalIn .22s ease;margin:auto}
+.modal-box.wide{width:min(900px,100%)}
+@keyframes modalIn{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border);flex:none}
+.modal-head h3{font-size:13.5px;font-weight:800}
+.modal-body{padding:16px;overflow:auto}
+.modal-body p.help{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+
+/* ===== FORMS ===== */
+.field{margin-bottom:11px}
+.field label{display:block;font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--faint);margin-bottom:5px}
+.field input,.field textarea,.field select{width:100%;font-size:13px;padding:9px 11px;border-radius:8px;border:1.5px solid var(--border);outline:none;transition:.15s;color:var(--ink);background:#fff}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.13)}
+.field .hint{font-size:10.5px;color:var(--faint);margin-top:4px}
+.cred-box{background:#f8fafc;border:1px dashed var(--border-2);border-radius:9px;padding:13px;font-family:var(--mono);font-size:12.5px;margin:10px 0}
+.cred-line{display:flex;justify-content:space-between;align-items:center;padding:3px 0;gap:10px}
+.cred-line b{font-family:inherit;font-size:11px;color:var(--muted);font-weight:600}
+.cred-line span{font-weight:700;font-size:13px;color:var(--ink);word-break:break-all;text-align:right}
+.cred-note{font-size:11px;color:#92400e;background:var(--amber-bg);padding:8px 11px;border-radius:7px;border:1px solid #fde68a;margin-top:4px}
+
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+th{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);background:#f8fafc;position:sticky;top:0}
+tbody tr:hover{background:#f8fafc}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-bottom));transform:translate(-50%,20px);background:#0d1829;color:#fff;padding:11px 18px;border-radius:10px;font-size:12.5px;font-weight:600;opacity:0;pointer-events:none;transition:.25s ease;z-index:120;max-width:calc(100vw - 32px);box-shadow:0 14px 34px -10px rgba(0,0,0,.55);display:flex;align-items:center;gap:8px;line-height:1.4}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.success{background:#065f46}
+.toast.error{background:#991b1b}
+
+.csv-drop{border:2px dashed var(--border-2);border-radius:10px;padding:24px 16px;text-align:center;color:var(--muted);transition:.15s;cursor:pointer}
+.csv-drop:hover,.csv-drop.dragover{border-color:var(--accent);background:var(--accent-lt)}
+.csv-drop-icon{font-size:26px;margin-bottom:6px}
+.csv-drop-title{font-weight:700;font-size:12.5px;color:var(--ink);margin-bottom:3px}
+.csv-drop-sub{font-size:11px}
+
+.session-bar{position:fixed;bottom:0;left:0;right:0;background:var(--ink);color:#fff;font-size:11px;padding:6px 16px calc(6px + var(--safe-bottom));z-index:30;display:none;justify-content:space-between;align-items:center;gap:10px}
+.session-bar.show{display:flex}
+.session-bar button{background:transparent;color:#fca5a5;border:0;font-weight:700;font-size:11px;padding:2px 8px}
+
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay{position:fixed;inset:0;background:rgba(13,24,41,.4);display:none;place-items:center;z-index:90;backdrop-filter:blur(2px)}
+.loading-overlay.show{display:grid}
+.loading-box{background:#fff;border-radius:12px;padding:20px 28px;display:flex;align-items:center;gap:12px;font-size:13px;font-weight:700;box-shadow:var(--sh-lg)}
+.loading-box .spinner{border-color:#cbd5e1;border-top-color:var(--accent);width:18px;height:18px}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width:900px){
+  .app-layout{grid-template-columns:1fr}
+  .teacher-side{position:fixed;top:0;left:0;bottom:0;width:min(290px,85vw);z-index:60;max-height:100vh;border-radius:0;transform:translateX(-100%);transition:transform .22s ease;padding-top:8px}
+  .teacher-side.open{transform:none}
+  .student-list{max-height:none}
+  .sidebar-toggle{display:flex}
+  .app-brand h1{font-size:12.5px}
+  .app-brand p{font-size:10px}
+  .task-grid{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .app-bar{padding:0 12px}
+  .app-bar-inner{min-height:52px}
+  .app-logo{width:30px;height:30px;font-size:10px}
+  .app-brand h1{font-size:12px}
+  .app-brand p{display:none}
+  .app-layout,.student-layout{padding:0 10px;margin-top:12px}
+  .card{padding:12px}
+  .dash-header{padding:16px}
+  .dash-header h2{font-size:16px}
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .stat-card{padding:11px 12px}
+  .stat-value{font-size:19px}
+  .welcome-card{padding:16px 16px}
+  .welcome-card h1{font-size:17px}
+  .item{flex-wrap:wrap;gap:6px}
+  .item-text{flex:1 1 100%;font-size:12.5px}
+  .toggle{margin-left:auto}
+  .auth-card{padding:24px 20px 20px;border-radius:14px}
+  .auth-brand h1{font-size:16px}
+  .modal{padding:10px}
+  .modal-box{max-height:calc(100vh - 20px)}
+  .btn{padding:7px 12px;font-size:11.5px}
+  .assess-head h2{font-size:14.5px}
+  .student-actions{padding:10px}
+  .student-actions .status-note{font-size:11px}
+}
+@media (max-width:360px){
+  .stat-grid{grid-template-columns:1fr}
+  .welcome-badges{gap:4px}
+  .welcome-badge{font-size:10px;padding:4px 8px}
+}
+
+/* ===== PRINT ===== */
+.print-only{display:none}
+@media print{
+  @page{size:A4;margin:11mm}
+  body{background:#fff;font-size:10px;color:#000}
+  .app-bar,.teacher-side,.sidebar-toggle,.no-print,.toggle,.modal,.toast,.session-bar,.sidebar-backdrop,.loading-overlay{display:none!important}
+  .app-layout,.student-layout{display:block;max-width:100%;margin:0;padding:0}
+  .teacher-main{display:block}
+  #teacherTasks,#studentTasks{display:block}
+  .card{box-shadow:none;border:1px solid #cbd5e1;padding:7px 10px;margin-bottom:6px;border-radius:6px;break-inside:avoid;page-break-inside:avoid}
+  .task-card{padding:7px 10px}
+  .task-head{padding-bottom:5px;margin-bottom:3px}
+  .task-num{width:18px;height:18px;font-size:9px;background:#fff;border:1px solid #64748b;color:#000}
+  .task-info h3{font-size:9.5px;letter-spacing:.3px}
+  .task-info p{font-size:8.5px}
+  .task-score{display:none}
+  .item{padding:3px 0;background:#fff!important;border-radius:0;margin:0!important;display:flex}
+  .item + .item{border-top:1px dotted #cbd5e1}
+  .item-text{font-size:10px;color:#000!important;flex:1}
+  .item-text::after{content:'';display:inline-block}
+  .print-ans{display:inline-block!important;font-weight:800;min-width:42px;text-align:right;font-size:9.5px}
+  .print-only{display:block!important}
+  .print-header{border-bottom:2px solid #0d1829;padding-bottom:8px;margin-bottom:10px;text-align:center}
+  .print-header h2{font-size:14px;letter-spacing:1px;margin-bottom:2px}
+  .print-header p{font-size:9.5px;color:#334155;margin-bottom:8px}
+  .print-meta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:10px;text-align:left}
+  .print-meta span{flex:1;min-width:110px;border-bottom:1px solid #94a3b8;padding:1px 3px}
+  .sign-block{margin-top:18px;display:flex;justify-content:space-between;gap:36px;font-size:10px}
+  .sign-line{border-top:1px solid #0d1829;margin-top:30px;padding-top:3px;text-align:center;flex:1}
+  .remarks-print{border:1px solid #cbd5e1;border-radius:5px;padding:6px 9px;min-height:44px;font-size:10px;margin-top:8px}
+  .remarks-print::before{content:"Remarks: ";font-weight:800}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN SCREEN ============ -->
+<div id="loginScreen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="auth-logo">CSS</div>
+      <h1>Assessment Portal</h1>
+      <p>Computer Systems Servicing · NC II</p>
+    </div>
+    <div class="setup-banner hidden" id="setupBanner">
+      <b>⚠ Demo Mode — Local Storage Only</b>
+      To enable cloud sync, paste your Supabase URL and anon key in the <code>CONFIG</code> object at the top of the script.
+    </div>
+    <div class="auth-tabs">
+      <button type="button" data-role="teacher" class="active">Teacher</button>
+      <button type="button" data-role="student">Student</button>
+    </div>
+    <form id="loginForm" autocomplete="off">
+      <div class="auth-form">
+        <label for="loginUser">Username</label>
+        <input type="text" id="loginUser" placeholder="Enter your username" required autocapitalize="none" autocorrect="off" spellcheck="false">
+        <label for="loginPass">Password</label>
+        <input type="password" id="loginPass" placeholder="Enter your password" required>
+        <button type="submit" class="auth-btn" id="loginBtn">Sign In</button>
+        <div id="loginMsg" class="auth-msg"></div>
+      </div>
+    </form>
+    <div class="auth-switch" id="switchToReg">
+      New student? <a href="#" id="goRegister">Create an account</a>
+    </div>
+    <div class="auth-footer"><span id="lockInfo"></span></div>
+  </div>
+</div>
+
+<!-- ============ REGISTRATION SCREEN ============ -->
+<div id="registerScreen" class="auth-screen hidden">
+  <div class="auth-card wide">
+    <div class="auth-brand">
+      <div class="auth-logo">CSS</div>
+      <h1>Create Student Account</h1>
+      <p>Fill in your complete profile to register</p>
+    </div>
+    <form id="registerForm" autocomplete="off">
+      <div class="auth-form">
+        <label for="regName">Full Name *</label>
+        <input type="text" id="regName" placeholder="Last Name, First Name M.I." required minlength="3">
+
+        <div class="auth-row">
+          <div>
+            <label for="regStudentId">Student ID / LRN *</label>
+            <input type="text" id="regStudentId" placeholder="e.g. 1234-5678-9101" required minlength="3" autocapitalize="none">
+          </div>
+          <div>
+            <label for="regSection">Section *</label>
+            <input type="text" id="regSection" placeholder="e.g. STEM-12-A" required minlength="2" autocapitalize="characters">
+          </div>
+        </div>
+
+        <label for="regEmail">Email Address *</label>
+        <input type="email" id="regEmail" placeholder="you@example.com" required autocapitalize="none" autocorrect="off" spellcheck="false">
+
+        <label for="regPhone">Phone Number *</label>
+        <input type="tel" id="regPhone" placeholder="09XX XXX XXXX" required minlength="7" inputmode="tel">
+
+        <label for="regGuardian">Parent / Guardian Name</label>
+        <input type="text" id="regGuardian" placeholder="Optional">
+
+        <label for="regAddress">Address</label>
+        <input type="text" id="regAddress" placeholder="Optional">
+
+        <div class="auth-row">
+          <div>
+            <label for="regPass">Password *</label>
+            <input type="password" id="regPass" placeholder="Min 6 characters" required minlength="6">
+          </div>
+          <div>
+            <label for="regPass2">Confirm Password *</label>
+            <input type="password" id="regPass2" placeholder="Re-enter password" required minlength="6">
+          </div>
+        </div>
+
+        <button type="submit" class="auth-btn" id="registerBtn">Create Account</button>
+        <div id="registerMsg" class="auth-msg"></div>
+      </div>
+    </form>
+    <div class="auth-switch">
+      Already have an account? <a href="#" id="goLogin">Sign in</a>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PROFILE COMPLETION SCREEN ============ -->
+<div id="profileScreen" class="auth-screen hidden">
+  <div class="auth-card wide">
+    <div class="auth-brand">
+      <div class="auth-logo">👤</div>
+      <h1>Complete Your Profile</h1>
+      <p>All fields marked * are required to continue</p>
+    </div>
+    <form id="profileForm" autocomplete="off">
+      <div class="auth-form">
+        <label for="pfName">Full Name *</label>
+        <input type="text" id="pfName" required minlength="3">
+
+        <div class="auth-row">
+          <div>
+            <label for="pfStudentId">Student ID / LRN *</label>
+            <input type="text" id="pfStudentId" required minlength="3" autocapitalize="none">
+          </div>
+          <div>
+            <label for="pfSection">Section *</label>
+            <input type="text" id="pfSection" required minlength="2">
+          </div>
+        </div>
+
+        <label for="pfEmail">Email Address *</label>
+        <input type="email" id="pfEmail" required autocapitalize="none" autocorrect="off" spellcheck="false">
+
+        <label for="pfPhone">Phone Number *</label>
+        <input type="tel" id="pfPhone" required minlength="7" inputmode="tel">
+
+        <label for="pfGuardian">Parent / Guardian Name</label>
+        <input type="text" id="pfGuardian">
+
+        <label for="pfAddress">Address</label>
+        <input type="text" id="pfAddress">
+
+        <button type="submit" class="auth-btn" id="profileBtn">Save & Continue</button>
+        <div id="profileMsg" class="auth-msg"></div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ APP SHELL ============ -->
+<div id="appShell" class="hidden">
+  <header class="app-bar">
+    <div class="app-bar-inner">
+      <div class="app-brand">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu">☰</button>
+        <div class="app-logo">CSS</div>
+        <div class="app-brand-text">
+          <h1 id="appTitle">Assessment Portal</h1>
+          <p id="appSubtitle">Computer Systems Servicing NC II</p>
+        </div>
+      </div>
+      <div class="app-user">
+        <div class="user-info">
+          <b id="userName">—</b>
+          <small id="userRoleLabel">—</small>
+        </div>
+        <button class="btn btn-light logout-btn" id="btnLogout">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="teacherView" class="app-layout hidden">
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <aside class="teacher-side" id="teacherSide">
+      <div class="side-section" style="padding-bottom:6px;display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" id="btnBackToDash" style="flex:1">🏠 Dashboard</button>
+        <button class="icon-btn" id="closeSidebar" style="display:none">✕</button>
+      </div>
+      <div class="side-section">
+        <div class="side-head">
+          <h3>Students</h3>
+          <button class="icon-btn" id="btnAddStudent" title="Add student">+</button>
+        </div>
+        <input type="search" id="studentSearch" placeholder="Search students..." class="search-input">
+      </div>
+      <div class="student-list" id="studentList"></div>
+      <div class="side-actions">
+        <button class="btn btn-ghost btn-block btn-sm" id="btnImportCSV">📥 Import CSV</button>
+        <button class="btn btn-ghost btn-block btn-sm" id="btnExportAll">📤 Export All CSV</button>
+      </div>
+    </aside>
+    <main class="teacher-main" id="teacherMain"></main>
+  </div>
+
+  <div id="studentView" class="student-layout hidden"></div>
+</div>
+
+<!-- ============ MODALS ============ -->
+<div class="modal" id="addStudentModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Add New Student</h3><button class="icon-btn" data-close-modal>✕</button></div>
+    <div class="modal-body">
+      <p class="help">Create an account for a student. All fields are required — students can update them on first login.</p>
+      <form id="addStudentForm">
+        <div class="field"><label>Full Name *</label><input type="text" id="newName" placeholder="Last Name, First Name M.I." required minlength="3"></div>
+        <div class="field"><label>Student ID / LRN *</label><input type="text" id="newStudentId" placeholder="e.g. 1234-5678-9101" required minlength="3" autocapitalize="none"></div>
+        <div class="field"><label>Section *</label><input type="text" id="newSection" placeholder="e.g. STEM-12-A" required minlength="2"></div>
+        <div class="field"><label>Email *</label><input type="email" id="newEmail" placeholder="student@example.com" required autocapitalize="none"></div>
+        <div class="field"><label>Phone *</label><input type="tel" id="newPhone" placeholder="09XX XXX XXXX" required minlength="7" inputmode="tel"></div>
+        <div class="field"><label>Username (empty = auto)</label><input type="text" id="newUsername" placeholder="Auto-generated if empty" autocapitalize="none" autocorrect="off"></div>
+        <div class="field"><label>Password (empty = auto)</label><input type="text" id="newPassword" placeholder="Auto-generated if empty"></div>
+        <button type="submit" class="btn btn-primary btn-block">Create Student Account</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="credsModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>✅ Account Ready</h3><button class="icon-btn" data-close-modal>✕</button></div>
+    <div class="modal-body">
+      <p class="help">Give these credentials to the student. They will need them to sign in.</p>
+      <div class="cred-box">
+        <div class="cred-line"><b>Name</b><span id="credName">—</span></div>
+        <div class="cred-line"><b>Username</b><span id="credUser">—</span></div>
+        <div class="cred-line"><b>Password</b><span id="credPass">—</span></div>
+      </div>
+      <div class="cred-note">⚠ This password will NOT be shown again. Copy it now.</div>
+      <button class="btn btn-primary btn-block" style="margin-top:12px" id="btnCopyCreds">📋 Copy Credentials</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="studentDetailModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>👤 Student Profile</h3><button class="icon-btn" data-close-modal>✕</button></div>
+    <div class="modal-body" id="studentDetailBody"></div>
+  </div>
+</div>
+
+<div class="modal" id="csvModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Import Students from CSV</h3><button class="icon-btn" data-close-modal>✕</button></div>
+    <div class="modal-body">
+      <p class="help">Columns: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:11px">name, student_id, section, email, phone, username, password</code>. Only <b>name</b> is required — others auto-generate or leave blank (student must complete on first login).</p>
+      <div class="csv-drop" id="csvDrop">
+        <div class="csv-drop-icon">📄</div>
+        <div class="csv-drop-title">Click to choose a CSV file</div>
+        <div class="csv-drop-sub">or drag and drop it here</div>
+      </div>
+      <input type="file" id="csvInput" accept=".csv,text/csv" style="display:none">
+      <div id="csvPreview" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="confirmModal">
+  <div class="modal-box" style="width:min(400px,100%)">
+    <div class="modal-head"><h3 id="confirmTitle">Confirm</h3><button class="icon-btn" data-close-modal>✕</button></div>
+    <div class="modal-body">
+      <p class="help" id="confirmMsg"></p>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-ghost" id="confirmCancel">Cancel</button>
+        <button class="btn btn-primary" id="confirmOk">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-box"><span class="spinner"></span><span id="loadingText">Working...</span></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="session-bar" id="sessionBar">
+  <span id="sessionText"></span>
+  <button id="btnSessionLogout">Logout</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7"></script>
+<script>
+/* ============================================================
+   ⚙️  CONFIGURATION — PASTE YOUR SUPABASE CREDENTIALS HERE
+   ============================================================
+   Get these from: https://app.supabase.com → Project Settings → API
+   Leave empty to run in Local Storage (demo) mode.
+   ============================================================ */
+const CONFIG = {
+  supabaseUrl: '',      // e.g. 'https://abcdefgh.supabase.co'
+  supabaseKey: ''       // e.g. 'eyJhbGciOiJIUzI1...'
+};
+
+/* ============================================================
+   ZOOM LOCK (mobile + desktop)
+   ============================================================ */
+document.addEventListener('gesturestart', e => e.preventDefault(), { passive:false });
+document.addEventListener('gesturechange', e => e.preventDefault(), { passive:false });
+document.addEventListener('gestureend', e => e.preventDefault(), { passive:false });
+document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, { passive:false });
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && ['+','-','=','0'].includes(e.key)) e.preventDefault();
+});
+let lastTouch = 0;
+document.addEventListener('touchend', e => {
+  const now = Date.now();
+  if (now - lastTouch < 300) e.preventDefault();
+  lastTouch = now;
+}, { passive:false });
+
+/* ============================================================
+   SUPABASE CLIENT (optional)
+   ============================================================ */
+let sb = null;
+const USE_SUPABASE = !!(CONFIG.supabaseUrl && CONFIG.supabaseKey &&
+  window.supabase && !CONFIG.supabaseUrl.includes('YOUR_'));
+if (USE_SUPABASE){
+  try { sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey); }
+  catch(e){ console.warn('Supabase init failed:', e); }
+}
+
+/* ============================================================
+   CONSTANTS
+   ============================================================ */
+const KEYS = {
+  users: 'cssnc2_users_v3',
+  assessments: 'cssnc2_assessments_v3',
+  audit: 'cssnc2_audit_v3',
+  attempts: 'cssnc2_attempts_v3',
+  session: 'cssnc2_session_v3'
+};
+const SESSION_TTL = 30 * 60 * 1000;
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 5 * 60 * 1000;
+
+const TASKS = [
+  { id:'task1', title:'Task 1 — Computer System Setup & Testing', sub:'Peripherals & power · RAM, HDD, CPU specs', items:[
+    {id:'t1a', text:'Peripherals and power cables connected'},
+    {id:'t1b', text:'Computer successfully powered on and tested'},
+    {id:'t1c', text:'CPU, RAM, and HDD/SSD specifications checked'}
+  ]},
+  { id:'task2', title:'Task 2 — Create Bootable Flash Drive', sub:'Using Rufus', items:[
+    {id:'t2a', text:'Bootable flash drive successfully created'}
+  ]},
+  { id:'task3', title:'Task 3 — BIOS Configuration', sub:'Change boot priority', items:[
+    {id:'t3a', text:'Boot priority successfully changed'}
+  ]},
+  { id:'task4', title:'Task 4 — Windows OS Installation', sub:'Partition 40/60 · OS in 40% partition', items:[
+    {id:'t4a', text:'Windows OS successfully installed and activated'},
+    {id:'t4b', text:'40/60 disk partition created'},
+    {id:'t4c', text:'Windows installed in the 40% partition'}
+  ]},
+  { id:'task5', title:'Task 5 — Basic Computer Configuration', sub:'Time · Shortcuts · Documents · User · Rename', items:[
+    {id:'t5a', text:'Time and date configured'},
+    {id:'t5b', text:'Control Panel shortcut present'},
+    {id:'t5c', text:'Network shortcut present'},
+    {id:'t5d', text:"User's Files shortcut present"},
+    {id:'t5e', text:'Recycle Bin icon present'},
+    {id:'t5f', text:'Computer / This PC shortcut present'},
+    {id:'t5g', text:'APPLICATION folder created'},
+    {id:'t5h', text:'DRIVER folder created'},
+    {id:'t5i', text:'MS Word document created and saved in the appropriate folder'},
+    {id:'t5j', text:'New user account created'},
+    {id:'t5k', text:'PC renamed to CSS-LASTNAME'}
+  ]},
+  { id:'task6', title:'Task 6 — Application & Driver Installation', sub:'WinRAR · SMADAV · Driver · Chrome · VLC · Adobe · Office', items:[
+    {id:'t6a', text:'WinRAR installed'},
+    {id:'t6b', text:'SMADAV installed'},
+    {id:'t6c', text:'Device driver installed'},
+    {id:'t6d', text:'Google Chrome installed'},
+    {id:'t6e', text:'VLC Media Player installed'},
+    {id:'t6f', text:'Adobe Reader installed'},
+    {id:'t6g', text:'MS Office installed'}
+  ]},
+  { id:'task7', title:'Task 7 — File Transfer & Peripheral Testing', sub:'USB · Smartphone image · Keyboard & mouse', items:[
+    {id:'t7a', text:'File successfully transferred using a USB flash drive'},
+    {id:'t7b', text:'Image successfully transferred from smartphone to computer'},
+    {id:'t7c', text:'Keyboard functionality tested'},
+    {id:'t7d', text:'Mouse functionality tested'}
+  ]}
+];
+const TOTAL_ITEMS = TASKS.reduce((s,t)=>s+t.items.length,0);
+const ALL_ITEMS = TASKS.reduce((a,t)=>a.concat(t.items), []);
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+function escapeHtml(str){ return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function uuid(){ return (crypto.randomUUID ? crypto.randomUUID() : 'id-' + Math.random().toString(36).slice(2) + Date.now().toString(36)); }
+function formatDate(iso){ if(!iso) return ''; try { const d=new Date(iso); return isNaN(d)?iso:d.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}); } catch(e){ return iso; } }
+function formatDateTime(iso){ if(!iso) return ''; try { const d=new Date(iso); return d.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); } catch(e){ return iso; } }
+function relativeTime(iso){ const d=new Date(iso); const diff=Date.now()-d.getTime(); const mins=Math.floor(diff/60000); if(mins<1) return 'just now'; if(mins<60) return mins+'m ago'; const hrs=Math.floor(mins/60); if(hrs<24) return hrs+'h ago'; const days=Math.floor(hrs/24); if(days<7) return days+'d ago'; return d.toLocaleDateString(); }
+async function sha256(str){ const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)); return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
+async function hashPassword(p, s){ return sha256(s + '::' + p); }
+function generatePassword(){ const words=['Tiger','Hawk','Eagle','Falcon','Wolf','Bear','Lion','Puma','Cobra','Orca','Lynx','Raven']; return words[Math.floor(Math.random()*words.length)] + '-' + Math.floor(1000+Math.random()*9000); }
+function slugify(str){ return String(str).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s.]/g,'').trim().replace(/\s+/g,'.'); }
+function generateUsername(name, existing){
+  const base = slugify(name).split('.').slice(0,2).filter(Boolean).join('.') || 'student';
+  const set = new Set((existing||[]).map(u => String(u.username || '').toLowerCase()));
+  let candidate = base, n = 1;
+  while (set.has(candidate.toLowerCase())){ n++; candidate = base + n; }
+  return candidate;
+}
+function isValidEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e).trim()); }
+
+/* ============================================================
+   LOCAL STORAGE HELPERS
+   ============================================================ */
+function read(key, fb){ try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : fb; } catch(e){ return fb; } }
+function write(key, val){ try { localStorage.setItem(key, JSON.stringify(val)); return true; } catch(e){ return false; } }
+
+/* ============================================================
+   UNIFIED DATA LAYER (Supabase or LocalStorage)
+   ============================================================ */
+const rowToUser = r => ({
+  id: r.id, role: r.role, username: r.username,
+  name: r.name || '', section: r.section || '',
+  studentId: r.student_id || '', email: r.email || '',
+  phone: r.phone || '', guardian: r.guardian || '', address: r.address || '',
+  salt: r.salt, passwordHash: r.password_hash,
+  active: r.active !== false, profileComplete: !!r.profile_complete,
+  createdAt: r.created_at
+});
+const userToRow = u => ({
+  id: u.id, role: u.role, username: u.username,
+  name: u.name || '', section: u.section || '',
+  student_id: u.studentId || '', email: u.email || '',
+  phone: u.phone || '', guardian: u.guardian || '', address: u.address || '',
+  salt: u.salt, password_hash: u.passwordHash,
+  active: u.active !== false, profile_complete: !!u.profileComplete,
+  created_at: u.createdAt || new Date().toISOString()
+});
+
+const rowToAssessment = r => ({
+  studentId: r.student_id, answers: r.answers || {},
+  remarks: r.remarks || '', status: r.status || 'draft',
+  submittedAt: r.submitted_at, reviewedAt: r.reviewed_at
+});
+
+const DB = {
+  async getUsers(){
+    if (USE_SUPABASE){
+      const { data, error } = await sb.from('users').select('*');
+      if (error){ console.error(error); throw error; }
+      return (data || []).map(rowToUser);
+    }
+    return read(KEYS.users, []);
+  },
+  async saveUser(u){
+    if (USE_SUPABASE){
+      const { error } = await sb.from('users').upsert(userToRow(u), { onConflict: 'id' });
+      if (error) throw error;
+      return;
+    }
+    const users = read(KEYS.users, []);
+    const i = users.findIndex(x => x.id === u.id);
+    if (i >= 0) users[i] = u; else users.push(u);
+    write(KEYS.users, users);
+  },
+  async deleteUser(id){
+    if (USE_SUPABASE){
+      const { error } = await sb.from('users').delete().eq('id', id);
+      if (error) throw error;
+      return;
+    }
+    write(KEYS.users, read(KEYS.users, []).filter(u => u.id !== id));
+  },
+  async getAssessments(){
+    if (USE_SUPABASE){
+      const { data, error } = await sb.from('assessments').select('*');
+      if (error) throw error;
+      const map = {};
+      (data || []).forEach(r => { map[r.student_id] = rowToAssessment(r); });
+      return map;
+    }
+    return read(KEYS.assessments, {});
+  },
+  async saveAssessment(studentId, a){
+    if (USE_SUPABASE){
+      const row = {
+        student_id: studentId,
+        answers: a.answers || {},
+        remarks: a.remarks || '',
+        status: a.status || 'draft',
+        submitted_at: a.submittedAt || null,
+        reviewed_at: a.reviewedAt || null
+      };
+      const { error } = await sb.from('assessments').upsert(row, { onConflict: 'student_id' });
+      if (error) throw error;
+      return;
+    }
+    const all = read(KEYS.assessments, {});
+    all[studentId] = a;
+    write(KEYS.assessments, all);
+  },
+  async deleteAssessment(studentId){
+    if (USE_SUPABASE){
+      const { error } = await sb.from('assessments').delete().eq('student_id', studentId);
+      if (error) throw error;
+      return;
+    }
+    const all = read(KEYS.assessments, {});
+    delete all[studentId];
+    write(KEYS.assessments, all);
+  },
+  async logAction(action, details){
+    if (USE_SUPABASE){
+      try { await sb.from('audit').insert({ action, details }); } catch(e){ console.warn('audit error', e); }
+      return;
+    }
+    const a = read(KEYS.audit, []);
+    a.unshift({ id: uuid(), action, details, at: new Date().toISOString() });
+    write(KEYS.audit, a.slice(0, 200));
+  },
+  async getAudit(){
+    if (USE_SUPABASE){
+      const { data, error } = await sb.from('audit').select('*').order('created_at', { ascending: false }).limit(30);
+      if (error) return [];
+      return (data || []).map(r => ({ id: r.id, action: r.action, details: r.details, at: r.created_at }));
+    }
+    return read(KEYS.audit, []);
+  }
+};
+
+/* ============================================================
+   SESSION
+   ============================================================ */
+function getSession(){ const s = read(KEYS.session, null); if(!s) return null; if(s.expiresAt && s.expiresAt < Date.now()){ clearSession(); return null; } return s; }
+function setSession(user){ const s = { userId:user.id, role:user.role, token:uuid(), createdAt:Date.now(), expiresAt:Date.now()+SESSION_TTL }; write(KEYS.session, s); return s; }
+function clearSession(){ try { localStorage.removeItem(KEYS.session); } catch(e){} }
+function touchSession(){ const s = getSession(); if(!s) return; s.expiresAt = Date.now() + SESSION_TTL; write(KEYS.session, s); }
+
+let sessionTimer = null;
+function startSessionTimer(){
+  if (sessionTimer) clearInterval(sessionTimer);
+  sessionTimer = setInterval(() => {
+    const s = getSession();
+    if (!s){ clearInterval(sessionTimer); sessionTimer = null; handleLogout('Session expired. Please sign in again.'); return; }
+    const remain = Math.max(0, s.expiresAt - Date.now());
+    const mins = Math.ceil(remain / 60000);
+    if (remain < 5 * 60 * 1000){
+      $('#sessionBar').classList.add('show');
+      $('#sessionText').textContent = `⚠ Session expires in ${mins} min. Save your work.`;
+    } else {
+      $('#sessionBar').classList.remove('show');
+    }
+  }, 30000);
+}
+
+/* ============================================================
+   LOGIN THROTTLE
+   ============================================================ */
+function getAttempts(u){ const all = read(KEYS.attempts, {}); return all[u.toLowerCase()] || { count:0, lockUntil:0 }; }
+function setAttempts(u, r){ const all = read(KEYS.attempts, {}); all[u.toLowerCase()] = r; write(KEYS.attempts, all); }
+function checkThrottle(u){ const r = getAttempts(u); if(r.lockUntil > Date.now()){ return { blocked:true, seconds: Math.ceil((r.lockUntil-Date.now())/1000) }; } return { blocked:false }; }
+function recordAttempt(u, success){
+  const r = getAttempts(u);
+  if (success){ setAttempts(u, { count:0, lockUntil:0 }); return; }
+  const count = (r.count || 0) + 1;
+  setAttempts(u, { count, lockUntil: count >= MAX_ATTEMPTS ? Date.now() + LOCKOUT_MS : 0 });
+}
+
+/* ============================================================
+   TEACHER BOOTSTRAP (runs once if no teacher exists)
+   ============================================================ */
+async function ensureTeacherAccount(){
+  try {
+    const users = await DB.getUsers();
+    if (users.some(u => u.role === 'teacher')) return;
+    const salt = 'emnace_salt_' + uuid().slice(0, 8);
+    const hash = await hashPassword('paulinag', salt);
+    await DB.saveUser({
+      id: uuid(), role: 'teacher', username: 'emnace', salt, passwordHash: hash,
+      name: 'Trainer Emnace', section: 'Faculty',
+      studentId: '', email: '', phone: '', guardian: '', address: '',
+      active: true, profileComplete: true, createdAt: new Date().toISOString()
+    });
+    await DB.logAction('teacher_created', { username: 'emnace' });
+  } catch(e){ console.error('Teacher bootstrap failed:', e); }
+}
+
+/* ============================================================
+   AUTH
+   ============================================================ */
+let loginRole = 'teacher';
+function setLoginRole(role){
+  loginRole = role;
+  $$('.auth-tabs button').forEach(b => b.classList.toggle('active', b.dataset.role === role));
+  $('#loginUser').value = '';
+  $('#loginPass').value = '';
+  $('#loginMsg').textContent = '';
+  $('#loginMsg').className = 'auth-msg';
+  $('#lockInfo').textContent = '';
+  $('#switchToReg').classList.toggle('hidden', role === 'teacher');
+  $('#loginUser').placeholder = role === 'teacher' ? 'Teacher username' : 'Student username';
+  $('#loginUser').focus();
+}
+
+async function attemptLogin(username, password, role){
+  username = String(username || '').trim();
+  if (!username || !password) return { ok:false, msg:'Enter username and password.' };
+  const th = checkThrottle(username);
+  if (th.blocked) return { ok:false, msg:`Too many attempts. Try again in ${th.seconds}s.` };
+
+  let users;
+  try { users = await DB.getUsers(); }
+  catch(e){ return { ok:false, msg:'Cannot reach server. Check your connection.' }; }
+
+  const user = users.find(x => String(x.username || '').toLowerCase() === username.toLowerCase());
+  if (!user){ recordAttempt(username, false); DB.logAction('login_failed', { username, role, reason:'not_found' }); return { ok:false, msg:'Invalid username or password.' }; }
+  if (!user.active){ return { ok:false, msg:'Account disabled. Contact your teacher.' }; }
+  if (user.role !== role){ return { ok:false, msg:`This account is registered as a ${user.role}.` }; }
+
+  const hash = await hashPassword(password, user.salt);
+  if (hash !== user.passwordHash){ recordAttempt(username, false); DB.logAction('login_failed', { username, role, reason:'wrong_password' }); return { ok:false, msg:'Invalid username or password.' }; }
+
+  recordAttempt(username, true);
+  setSession(user);
+  DB.logAction('login_success', { username, role });
+  return { ok:true, user };
+}
+
+function handleLogout(msg){
+  clearSession();
+  if (sessionTimer){ clearInterval(sessionTimer); sessionTimer = null; }
+  $('#sessionBar').classList.remove('show');
+  showLoginScreen();
+  if (msg){ $('#loginMsg').textContent = msg; $('#loginMsg').className = 'auth-msg success'; }
+}
+
+/* ============================================================
+   STUDENT REGISTRATION
+   ============================================================ */
+async function handleRegister(e){
+  e.preventDefault();
+  const btn = $('#registerBtn');
+  const msg = $('#registerMsg');
+  msg.textContent = ''; msg.className = 'auth-msg';
+
+  const name = $('#regName').value.trim();
+  const studentId = $('#regStudentId').value.trim();
+  const section = $('#regSection').value.trim();
+  const email = $('#regEmail').value.trim();
+  const phone = $('#regPhone').value.trim();
+  const guardian = $('#regGuardian').value.trim();
+  const address = $('#regAddress').value.trim();
+  const pass = $('#regPass').value;
+  const pass2 = $('#regPass2').value;
+
+  if (!name || name.length < 3) return setRegMsg('Please enter your full name.');
+  if (!studentId || studentId.length < 3) return setRegMsg('Please enter your Student ID / LRN.');
+  if (!section) return setRegMsg('Please enter your section.');
+  if (!isValidEmail(email)) return setRegMsg('Please enter a valid email address.');
+  if (!phone || phone.length < 7) return setRegMsg('Please enter a valid phone number.');
+  if (pass.length < 6) return setRegMsg('Password must be at least 6 characters.');
+  if (pass !== pass2) return setRegMsg('Passwords do not match.');
+
+  btn.disabled = true; btn.textContent = 'Creating account...';
+  try {
+    const users = await DB.getUsers();
+    if (users.some(u => u.email && u.email.toLowerCase() === email.toLowerCase())){
+      setRegMsg('An account with this email already exists. Try signing in.'); return;
+    }
+    if (users.some(u => u.studentId && u.studentId.toLowerCase() === studentId.toLowerCase())){
+      setRegMsg('An account with this Student ID already exists. Try signing in.'); return;
+    }
+    const username = generateUsername(name, users);
+    const salt = uuid().slice(0, 16);
+    const hash = await hashPassword(pass, salt);
+    const user = {
+      id: uuid(), role: 'student', username, salt, passwordHash: hash,
+      name, section, studentId, email, phone, guardian, address,
+      active: true, profileComplete: true, createdAt: new Date().toISOString()
+    };
+    await DB.saveUser(user);
+    await DB.logAction('student_registered', { name, username, email });
+
+    setRegMsg('✅ Account created! Signing you in...', 'success');
+    setSession(user);
+    setTimeout(() => { $('#registerForm').reset(); route(); toast('Welcome! Account created.', 'success'); }, 600);
+  } catch(err){
+    console.error(err);
+    setRegMsg('Registration failed. ' + (err.message || 'Please try again.'));
+  } finally {
+    btn.disabled = false; btn.textContent = 'Create Account';
+  }
+}
+function setRegMsg(t, cls){ const m = $('#registerMsg'); m.textContent = t; m.className = 'auth-msg ' + (cls || ''); }
+
+/* ============================================================
+   PROFILE COMPLETION (for teacher-created accounts missing info)
+   ============================================================ */
+let profilePendingUser = null;
+async function showProfileScreen(user){
+  profilePendingUser = user;
+  $('#loginScreen').classList.add('hidden');
+  $('#registerScreen').classList.add('hidden');
+  $('#profileScreen').classList.remove('hidden');
+  $('#appShell').classList.add('hidden');
+  $('#pfName').value = user.name || '';
+  $('#pfStudentId').value = user.studentId || '';
+  $('#pfSection').value = user.section || '';
+  $('#pfEmail').value = user.email || '';
+  $('#pfPhone').value = user.phone || '';
+  $('#pfGuardian').value = user.guardian || '';
+  $('#pfAddress').value = user.address || '';
+  $('#profileMsg').textContent = '';
+  setTimeout(() => $('#pfName').focus(), 100);
+}
+async function handleProfileSubmit(e){
+  e.preventDefault();
+  const msg = $('#profileMsg');
+  msg.textContent = ''; msg.className = 'auth-msg';
+  const name = $('#pfName').value.trim();
+  const studentId = $('#pfStudentId').value.trim();
+  const section = $('#pfSection').value.trim();
+  const email = $('#pfEmail').value.trim();
+  const phone = $('#pfPhone').value.trim();
+  const guardian = $('#pfGuardian').value.trim();
+  const address = $('#pfAddress').value.trim();
+
+  if (!name || name.length < 3) return setProfileMsg('Please enter your full name.');
+  if (!studentId || studentId.length < 3) return setProfileMsg('Please enter your Student ID / LRN.');
+  if (!section) return setProfileMsg('Please enter your section.');
+  if (!isValidEmail(email)) return setProfileMsg('Please enter a valid email address.');
+  if (!phone || phone.length < 7) return setProfileMsg('Please enter a valid phone number.');
+
+  const btn = $('#profileBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    profilePendingUser.name = name;
+    profilePendingUser.studentId = studentId;
+    profilePendingUser.section = section;
+    profilePendingUser.email = email;
+    profilePendingUser.phone = phone;
+    profilePendingUser.guardian = guardian;
+    profilePendingUser.address = address;
+    profilePendingUser.profileComplete = true;
+    await DB.saveUser(profilePendingUser);
+    await DB.logAction('profile_completed', { name });
+    $('#profileForm').reset();
+    profilePendingUser = null;
+    route();
+    toast('✅ Profile saved!', 'success');
+  } catch(err){
+    console.error(err);
+    setProfileMsg('Failed to save. Please try again.');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save & Continue';
+  }
+}
+function setProfileMsg(t, cls){ const m = $('#profileMsg'); m.textContent = t; m.className = 'auth-msg ' + (cls || ''); }
+
+/* ============================================================
+   ROUTER
+   ============================================================ */
+function showLoginScreen(){
+  $('#loginScreen').classList.remove('hidden');
+  $('#registerScreen').classList.add('hidden');
+  $('#profileScreen').classList.add('hidden');
+  $('#appShell').classList.add('hidden');
+  $('#setupBanner').classList.toggle('hidden', USE_SUPABASE);
+}
+
+async function route(){
+  const session = getSession();
+  if (!session){ showLoginScreen(); return; }
+
+  let user;
+  try { const users = await DB.getUsers(); user = users.find(u => u.id === session.userId); }
+  catch(e){ console.error(e); handleLogout('Cannot reach server. Please sign in again.'); return; }
+  if (!user){ handleLogout('Session invalid. Please sign in again.'); return; }
+
+  // If student and profile incomplete → force profile completion
+  if (user.role === 'student' && !user.profileComplete){
+    showProfileScreen(user);
+    return;
+  }
+
+  $('#loginScreen').classList.add('hidden');
+  $('#registerScreen').classList.add('hidden');
+  $('#profileScreen').classList.add('hidden');
+  $('#appShell').classList.remove('hidden');
+  $('#userName').textContent = user.name || user.username;
+  $('#userRoleLabel').textContent = user.role === 'teacher' ? 'Teacher' : 'Student';
+
+  if (user.role === 'teacher'){
+    $('#teacherView').classList.remove('hidden');
+    $('#studentView').classList.add('hidden');
+    await renderTeacherSidebar();
+    if (!selectedStudentId) await renderTeacherDashboard();
+    else await renderTeacherAssessment(selectedStudentId);
+  } else {
+    $('#teacherView').classList.add('hidden');
+    $('#studentView').classList.remove('hidden');
+    await renderStudentView(user);
+  }
+  startSessionTimer();
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+let selectedStudentId = null;
+let cachedUsers = [];
+let cachedAssessments = {};
+
+async function refreshCache(){
+  try {
+    cachedUsers = await DB.getUsers();
+    cachedAssessments = await DB.getAssessments();
+  } catch(e){ console.error('Cache refresh failed:', e); }
+}
+function getStudentList(){ return cachedUsers.filter(u => u.role === 'student').sort((a,b) => (a.name||'').localeCompare(b.name||'')); }
+function getAssessment(sid){
+  return cachedAssessments[sid] || { studentId: sid, answers:{}, remarks:'', status:'draft', submittedAt:null, reviewedAt:null };
+}
+function computeScore(a){
+  let yes = 0, no = 0;
+  ALL_ITEMS.forEach(it => { const v = a.answers[it.id]; if (v === 'yes') yes++; else if (v === 'no') no++; });
+  return { yes, no, unanswered: TOTAL_ITEMS - yes - no, total: TOTAL_ITEMS, pct: TOTAL_ITEMS ? (yes/TOTAL_ITEMS)*100 : 0 };
+}
+
+/* ============================================================
+   TEACHER SIDEBAR
+   ============================================================ */
+async function renderTeacherSidebar(){
+  const c = $('#studentList');
+  const q = ($('#studentSearch').value || '').trim().toLowerCase();
+  const students = getStudentList().filter(s =>
+    !q || (s.name||'').toLowerCase().includes(q) ||
+    (s.section||'').toLowerCase().includes(q) ||
+    (s.username||'').toLowerCase().includes(q) ||
+    (s.studentId||'').toLowerCase().includes(q)
+  );
+  if (!students.length){
+    c.innerHTML = `<div class="student-item-empty">${getStudentList().length === 0 ? 'No students yet.<br>Click <b>+</b> or import a CSV.' : 'No matches.'}</div>`;
+    return;
+  }
+  c.innerHTML = students.map(s => {
+    const a = getAssessment(s.id);
+    const st = !s.profileComplete ? 'incomplete' : (a.status || 'draft');
+    const label = st === 'draft' ? 'Draft' : st === 'submitted' ? 'Submitted' : st === 'reviewed' ? 'Reviewed' : 'Incomplete';
+    return `<div class="student-item ${selectedStudentId === s.id ? 'active' : ''}" data-student-id="${s.id}">
+      <div class="student-item-name">${escapeHtml(s.name || s.username)}</div>
+      <div class="student-item-meta">
+        ${s.section ? `<span>${escapeHtml(s.section)}</span>` : ''}
+        <span class="status-badge status-${st}">${label}</span>
+      </div>
+    </div>`;
+  }).join('');
+  c.querySelectorAll('[data-student-id]').forEach(el => {
+    el.onclick = async () => {
+      selectedStudentId = el.dataset.studentId;
+      closeSidebar();
+      await renderTeacherSidebar();
+      await renderTeacherAssessment(selectedStudentId);
+    };
+  });
+}
+
+/* ============================================================
+   TEACHER DASHBOARD
+   ============================================================ */
+async function renderTeacherDashboard(){
+  await refreshCache();
+  const students = getStudentList();
+  const assessments = cachedAssessments;
+  const submitted = students.filter(s => assessments[s.id]?.status === 'submitted').length;
+  const reviewed = students.filter(s => assessments[s.id]?.status === 'reviewed').length;
+  const incomplete = students.filter(s => !s.profileComplete).length;
+  const scored = students.map(s => computeScore(getAssessment(s.id))).filter(x => x.yes + x.no > 0);
+  const avg = scored.length ? Math.round(scored.reduce((a,b) => a + b.pct, 0) / scored.length) : 0;
+
+  let audit = [];
+  try { audit = (await DB.getAudit()).slice(0, 8); } catch(e){}
+
+  const teacherName = cachedUsers.find(u => u.id === getSession()?.userId)?.name || 'Teacher';
+  const session = getSession();
+
+  $('#teacherMain').innerHTML = `
+    <div class="dash-header">
+      <h2>Welcome back, ${escapeHtml(teacherName)}</h2>
+      <p>Overview of your students' assessment progress.</p>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">Total Students</div><div class="stat-value">${students.length}</div><div class="stat-sub">${students.length === 0 ? 'Add your first student' : 'Active accounts'}</div></div>
+      <div class="stat-card"><div class="stat-label">Submitted</div><div class="stat-value" style="color:var(--amber)">${submitted}</div><div class="stat-sub">Awaiting review</div></div>
+      <div class="stat-card"><div class="stat-label">Reviewed</div><div class="stat-value" style="color:var(--yes)">${reviewed}</div><div class="stat-sub">Finalized</div></div>
+      <div class="stat-card"><div class="stat-label">Average Score</div><div class="stat-value" style="color:var(--accent)">${avg}%</div><div class="stat-sub">Across all students</div></div>
+    </div>
+    ${incomplete > 0 ? `<div class="card" style="border-color:#fde68a;background:var(--amber-bg)">
+      <div style="font-size:12.5px;color:#92400e;font-weight:600">⚠ ${incomplete} student${incomplete>1?'s':''} still need${incomplete===1?'s':''} to complete their profile on first login.</div>
+    </div>` : ''}
+    <div class="card">
+      <div class="section-title"><span>📋 Recent Activity</span></div>
+      <div class="activity-list">
+        ${audit.length === 0 ? '<div style="text-align:center;color:var(--faint);font-size:12px;padding:20px">No activity yet.</div>' :
+          audit.map(a => `<div class="activity-item">
+            <div class="activity-icon">${auditIcon(a.action)}</div>
+            <div class="activity-body"><div class="activity-text">${escapeHtml(auditText(a))}</div><div class="activity-time">${relativeTime(a.at)}</div></div>
+          </div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+function auditIcon(a){
+  if (a.startsWith('login_success')) return '🔓';
+  if (a.startsWith('login_failed')) return '🚫';
+  if (a.startsWith('logout')) return '🚪';
+  if (a.startsWith('student_created')) return '👤';
+  if (a.startsWith('student_registered')) return '📝';
+  if (a.startsWith('student_imported')) return '📥';
+  if (a.startsWith('assessment_saved')) return '💾';
+  if (a.startsWith('assessment_submitted')) return '📤';
+  if (a.startsWith('assessment_reviewed')) return '✅';
+  if (a.startsWith('password_reset')) return '🔑';
+  if (a.startsWith('profile_completed')) return '👤';
+  if (a.startsWith('teacher_created')) return '👨‍🏫';
+  return '•';
+}
+function auditText(a){
+  const d = a.details || {};
+  switch(a.action){
+    case 'login_success': return `${d.username} signed in as ${d.role}`;
+    case 'login_failed': return `Failed login attempt for ${d.username || '—'}`;
+    case 'logout': return `User signed out`;
+    case 'student_created': return `Created student: ${d.name || ''}`;
+    case 'student_registered': return `${d.name || 'Student'} self-registered (${d.username || ''})`;
+    case 'student_imported': return `Imported ${d.count || 0} student(s) from CSV`;
+    case 'assessment_saved': return `Saved assessment: ${d.name || ''}`;
+    case 'assessment_submitted': return `${d.name || 'Student'} submitted assessment`;
+    case 'assessment_reviewed': return `${d.name || 'Student'} assessment reviewed`;
+    case 'password_reset': return `Reset password for ${d.name || ''}`;
+    case 'profile_completed': return `${d.name || 'Student'} completed profile`;
+    case 'teacher_created': return `Teacher account initialized`;
+    default: return a.action;
+  }
+}
+
+/* ============================================================
+   TEACHER ASSESSMENT EDITOR
+   ============================================================ */
+async function renderTeacherAssessment(studentId){
+  await refreshCache();
+  const student = cachedUsers.find(u => u.id === studentId);
+  if (!student){ selectedStudentId = null; await renderTeacherDashboard(); return; }
+  const a = getAssessment(studentId);
+  const s = computeScore(a);
+  const statusLabel = a.status === 'draft' ? 'Draft' : a.status === 'submitted' ? 'Submitted' : 'Reviewed';
+
+  $('#teacherMain').innerHTML = `
+    <div class="card">
+      <div class="assess-head">
+        <div>
+          <h2>${escapeHtml(student.name || student.username)}</h2>
+          <p>${student.section ? escapeHtml(student.section) + ' · ' : ''}
+            <span class="status-badge status-${a.status}">${statusLabel}</span>
+            ${a.submittedAt ? ` · Submitted ${relativeTime(a.submittedAt)}` : ''}
+          </p>
+        </div>
+        <div class="assess-actions">
+          <button class="btn btn-ghost btn-sm" id="btnViewProfile">👤 Profile</button>
+          ${a.status === 'submitted' ? `<button class="btn btn-success btn-sm" id="btnReview">✅ Mark Reviewed</button>` : ''}
+          <button class="btn btn-ghost btn-sm" id="btnResetPass">🔑 Reset Password</button>
+          <button class="btn btn-ghost btn-sm" id="btnPrint">🖨 Print</button>
+          <button class="btn btn-danger btn-sm" id="btnDeleteStudent">Delete</button>
+        </div>
+      </div>
+      <div class="stat-grid" style="margin-bottom:14px">
+        <div class="stat-card"><div class="stat-label">Score</div><div class="stat-value" style="color:${s.pct>=80?'var(--yes)':s.pct>=50?'var(--amber)':'var(--no)'}">${s.yes} / ${s.total}</div><div class="stat-sub">${Math.round(s.pct)}% complete</div></div>
+        <div class="stat-card"><div class="stat-label">YES</div><div class="stat-value" style="color:var(--yes)">${s.yes}</div><div class="stat-sub">Passed items</div></div>
+        <div class="stat-card"><div class="stat-label">NO</div><div class="stat-value" style="color:var(--no)">${s.no}</div><div class="stat-sub">Failed items</div></div>
+        <div class="stat-card"><div class="stat-label">Unanswered</div><div class="stat-value">${s.unanswered}</div><div class="stat-sub">Pending</div></div>
+      </div>
+    </div>
+    <div class="task-grid" id="teacherTasks">
+      ${TASKS.map((task, i) => `
+        <div class="card task-card">
+          <div class="task-head">
+            <span class="task-num">${i+1}</span>
+            <div class="task-info"><h3>${task.title}</h3><p>${task.sub}</p></div>
+            <span class="task-score" data-task-score="${task.id}">0/${task.items.length}</span>
+          </div>
+          ${task.items.map(item => `
+            <div class="item" data-id="${item.id}" data-state="${a.answers[item.id] || ''}">
+              <span class="item-text">${item.text}</span>
+              <div class="toggle">
+                <button type="button" class="t-yes ${a.answers[item.id]==='yes'?'active':''}" data-val="yes">YES</button>
+                <button type="button" class="t-no ${a.answers[item.id]==='no'?'active':''}" data-val="no">NO</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `).join('')}
+    </div>
+    <div class="card">
+      <div class="section-title"><span>📝 Remarks</span></div>
+      <textarea id="teacherRemarks" placeholder="Enter remarks about the student's performance...">${escapeHtml(a.remarks || '')}</textarea>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn btn-primary" id="btnSaveAssess">💾 Save Assessment</button>
+        ${a.status === 'draft' ? `<button class="btn btn-ghost" id="btnMarkSubmitted">📤 Mark as Submitted</button>` : ''}
+      </div>
+    </div>
+  `;
+
+  updateTeacherBadges(a);
+
+  $('#teacherTasks').addEventListener('click', e => {
+    const btn = e.target.closest('.toggle button');
+    if (!btn) return;
+    const row = btn.closest('.item'), id = row.dataset.id, val = btn.dataset.val;
+    if (a.answers[id] === val) delete a.answers[id]; else a.answers[id] = val;
+    row.dataset.state = a.answers[id] || '';
+    row.querySelectorAll('.toggle button').forEach(b => b.classList.toggle('active', b.dataset.val === a.answers[id]));
+    updateTeacherBadges(a);
+  });
+
+  $('#btnSaveAssess').onclick = async () => {
+    a.remarks = $('#teacherRemarks').value;
+    try {
+      await DB.saveAssessment(student.id, a);
+      await DB.logAction('assessment_saved', { name: student.name });
+      cachedAssessments[student.id] = a;
+      toast('💾 Assessment saved', 'success');
+      await renderTeacherSidebar();
+    } catch(e){ toast('Failed to save: ' + e.message, 'error'); }
+  };
+  $('#btnMarkSubmitted')?.addEventListener('click', async () => {
+    a.status = 'submitted'; a.submittedAt = new Date().toISOString();
+    try {
+      await DB.saveAssessment(student.id, a);
+      await DB.logAction('assessment_submitted', { name: student.name });
+      cachedAssessments[student.id] = a;
+      toast('📤 Marked as submitted', 'success');
+      await renderTeacherSidebar(); await renderTeacherAssessment(student.id);
+    } catch(e){ toast('Failed: ' + e.message, 'error'); }
+  });
+  $('#btnReview')?.addEventListener('click', async () => {
+    a.status = 'reviewed'; a.reviewedAt = new Date().toISOString(); a.remarks = $('#teacherRemarks').value;
+    try {
+      await DB.saveAssessment(student.id, a);
+      await DB.logAction('assessment_reviewed', { name: student.name });
+      cachedAssessments[student.id] = a;
+      toast('✅ Marked as reviewed', 'success');
+      await renderTeacherSidebar(); await renderTeacherAssessment(student.id);
+    } catch(e){ toast('Failed: ' + e.message, 'error'); }
+  });
+  $('#btnPrint').onclick = () => window.print();
+  $('#btnViewProfile').onclick = () => showStudentDetail(student);
+  $('#btnResetPass').onclick = async () => {
+    const newPass = generatePassword();
+    const salt = uuid().slice(0, 16);
+    const hash = await hashPassword(newPass, salt);
+    const users = await DB.getUsers();
+    const u = users.find(x => x.id === student.id);
+    if (!u) return;
+    u.salt = salt; u.passwordHash = hash;
+    try {
+      await DB.saveUser(u);
+      await DB.logAction('password_reset', { name: student.name });
+      showCredentials(student.name, u.username, newPass);
+    } catch(e){ toast('Failed: ' + e.message, 'error'); }
+  };
+  $('#btnDeleteStudent').onclick = () => {
+    confirmDialog('Delete student?', `Permanently delete ${student.name || student.username} and their assessment?`, async () => {
+      try {
+        await DB.deleteUser(student.id);
+        await DB.deleteAssessment(student.id);
+        selectedStudentId = null;
+        toast('Student deleted', 'error');
+        await renderTeacherSidebar();
+        await renderTeacherDashboard();
+      } catch(e){ toast('Failed: ' + e.message, 'error'); }
+    });
+  };
+}
+function updateTeacherBadges(a){
+  TASKS.forEach(task => {
+    let c = 0; task.items.forEach(it => { if (a.answers[it.id] === 'yes') c++; });
+    const b = document.querySelector(`[data-task-score="${task.id}"]`);
+    if (b){ b.textContent = `${c}/${task.items.length}`; b.classList.toggle('complete', c === task.items.length); }
+  });
+}
+
+function showStudentDetail(student){
+  const body = $('#studentDetailBody');
+  body.innerHTML = `
+    <div class="field"><label>Full Name</label><div style="font-size:13px;font-weight:700">${escapeHtml(student.name || '—')}</div></div>
+    <div class="field"><label>Username</label><div style="font-size:13px;font-family:var(--mono)">${escapeHtml(student.username || '—')}</div></div>
+    <div class="field"><label>Student ID / LRN</label><div style="font-size:13px">${escapeHtml(student.studentId || '—')}</div></div>
+    <div class="field"><label>Section</label><div style="font-size:13px">${escapeHtml(student.section || '—')}</div></div>
+    <div class="field"><label>Email</label><div style="font-size:13px">${escapeHtml(student.email || '—')}</div></div>
+    <div class="field"><label>Phone</label><div style="font-size:13px">${escapeHtml(student.phone || '—')}</div></div>
+    <div class="field"><label>Parent / Guardian</label><div style="font-size:13px">${escapeHtml(student.guardian || '—')}</div></div>
+    <div class="field"><label>Address</label><div style="font-size:13px">${escapeHtml(student.address || '—')}</div></div>
+    <div class="field"><label>Profile Status</label><div style="font-size:13px;font-weight:700;color:${student.profileComplete?'var(--yes)':'var(--no)'}">${student.profileComplete ? '✅ Complete' : '⚠ Incomplete'}</div></div>
+    <div class="field"><label>Registered</label><div style="font-size:13px">${formatDateTime(student.createdAt)}</div></div>
+  `;
+  openModal('#studentDetailModal');
+}
+
+/* ============================================================
+   STUDENT VIEW
+   ============================================================ */
+async function renderStudentView(user){
+  await refreshCache();
+  const a = getAssessment(user.id);
+  const s = computeScore(a);
+  const statusLabel = a.status === 'draft' ? 'In Progress' : a.status === 'submitted' ? 'Submitted' : 'Reviewed';
+  const editable = a.status === 'draft';
+  const ringColor = (s.yes + s.no === 0) ? '#cbd5e1' : s.pct >= 80 ? '#059669' : s.pct >= 50 ? '#f59e0b' : '#dc2626';
+  const deg = (s.pct / 100) * 360;
+  const firstName = (user.name || '').split(',')[0].split(' ')[0] || user.username;
+
+  $('#studentView').innerHTML = `
+    <div class="welcome-card">
+      <h1>Hi, ${escapeHtml(firstName)}! 👋</h1>
+      <p>Here is your Computer Systems Servicing NC II assessment checklist.</p>
+      <div class="welcome-badges">
+        ${user.section ? `<span class="welcome-badge">📚 ${escapeHtml(user.section)}</span>` : ''}
+        <span class="welcome-badge">🏷 ${statusLabel}</span>
+        <span class="welcome-badge">🎯 ${s.yes} of ${s.total} tasks done</span>
+      </div>
+    </div>
+    <div class="student-stats">
+      <div class="ring-wrap">
+        <div class="ring" style="background:conic-gradient(${ringColor} ${deg}deg, #eef2f7 ${deg}deg)">
+          <div class="ring-inner"><div class="ring-score">${s.yes}</div><div class="ring-total">/ ${s.total}</div></div>
+        </div>
+        <div style="font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)">Your Score</div>
+      </div>
+      <div class="stat-list">
+        <div class="stat-row"><span><i class="dot" style="background:var(--yes)"></i>YES — Completed</span><b>${s.yes}</b></div>
+        <div class="stat-row"><span><i class="dot" style="background:var(--no)"></i>NO — Not done</span><b>${s.no}</b></div>
+        <div class="stat-row"><span><i class="dot" style="background:#cbd5e1"></i>Unanswered</span><b>${s.unanswered}</b></div>
+        <div class="stat-row"><span><i class="dot" style="background:var(--accent)"></i>Percentage</span><b>${Math.round(s.pct)}%</b></div>
+      </div>
+    </div>
+    ${a.status === 'reviewed' ? `
+      <div class="review-note">
+        <span style="font-size:18px">✅</span>
+        <div>
+          <b>Assessment reviewed by your teacher</b>
+          <div style="margin-top:4px">${a.remarks ? escapeHtml(a.remarks) : 'No remarks provided.'}</div>
+          <div style="margin-top:4px;font-size:11px;opacity:.8">Final score: <b>${s.yes} / ${s.total}</b> · Reviewed ${relativeTime(a.reviewedAt)}</div>
+        </div>
+      </div>
+    ` : a.status === 'submitted' ? `
+      <div class="review-note" style="background:var(--amber-bg);border-color:#fde68a;color:#92400e">
+        <span style="font-size:18px">⏳</span>
+        <div>
+          <b>Waiting for teacher review</b>
+          <div style="margin-top:4px">You submitted this on ${formatDateTime(a.submittedAt)}. Your teacher will review it soon.</div>
+        </div>
+      </div>
+    ` : ''}
+    <div class="task-grid" id="studentTasks">
+      ${TASKS.map((task, i) => `
+        <div class="card task-card">
+          <div class="task-head">
+            <span class="task-num">${i+1}</span>
+            <div class="task-info"><h3>${task.title}</h3><p>${task.sub}</p></div>
+            <span class="task-score" data-task-score="${task.id}">0/${task.items.length}</span>
+          </div>
+          ${task.items.map(item => `
+            <div class="item" data-id="${item.id}" data-state="${a.answers[item.id] || ''}">
+              <span class="item-text">${item.text}</span>
+              <span class="print-ans"></span>
+              <div class="toggle">
+                <button type="button" class="t-yes ${a.answers[item.id]==='yes'?'active':''}" data-val="yes" ${editable?'':'disabled'}>YES</button>
+                <button type="button" class="t-no ${a.answers[item.id]==='no'?'active':''}" data-val="no" ${editable?'':'disabled'}>NO</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `).join('')}
+    </div>
+    <div class="student-actions">
+      ${editable ? `
+        <button class="btn btn-ghost" id="btnSaveDraft">💾 Save Progress</button>
+        <button class="btn btn-primary" id="btnSubmitAssess">📤 Submit for Review</button>
+        <div class="spacer"></div>
+        <span class="status-note">Mark each task as YES or NO. Submit when done.</span>
+      ` : `
+        <div class="spacer"></div>
+        <span class="status-note">${a.status === 'submitted' ? '⏳ Awaiting teacher review' : '✅ Assessment reviewed'}</span>
+      `}
+    </div>
+  `;
+
+  updateStudentPrintAnswers(a);
+  updateStudentBadges(a);
+
+  if (editable){
+    $('#studentTasks').addEventListener('click', e => {
+      const btn = e.target.closest('.toggle button');
+      if (!btn || btn.disabled) return;
+      const row = btn.closest('.item'), id = row.dataset.id, val = btn.dataset.val;
+      if (a.answers[id] === val) delete a.answers[id]; else a.answers[id] = val;
+      row.dataset.state = a.answers[id] || '';
+      row.querySelectorAll('.toggle button').forEach(b => b.classList.toggle('active', b.dataset.val === a.answers[id]));
+      updateStudentBadges(a);
+      updateStudentPrintAnswers(a);
+    });
+    $('#btnSaveDraft').onclick = async () => {
+      try {
+        await DB.saveAssessment(user.id, a);
+        cachedAssessments[user.id] = a;
+        toast('💾 Progress saved', 'success');
+      } catch(e){ toast('Failed to save: ' + e.message, 'error'); }
+    };
+    $('#btnSubmitAssess').onclick = () => {
+      const sc = computeScore(a);
+      const msg = sc.unanswered > 0
+        ? `You have ${sc.unanswered} unanswered task(s). Submit anyway? You cannot edit until your teacher reviews.`
+        : 'Once submitted, you cannot edit until your teacher reviews.';
+      confirmDialog('Submit assessment?', msg, async () => {
+        a.status = 'submitted'; a.submittedAt = new Date().toISOString();
+        try {
+          await DB.saveAssessment(user.id, a);
+          await DB.logAction('assessment_submitted', { name: user.name });
+          cachedAssessments[user.id] = a;
+          toast('📤 Submitted for review', 'success');
+          await renderStudentView(user);
+        } catch(e){ toast('Failed: ' + e.message, 'error'); }
+      });
+    };
+  }
+
+  function updateStudentBadges(a){
+    TASKS.forEach(task => {
+      let c = 0; task.items.forEach(it => { if (a.answers[it.id] === 'yes') c++; });
+      const b = document.querySelector(`[data-task-score="${task.id}"]`);
+      if (b){ b.textContent = `${c}/${task.items.length}`; b.classList.toggle('complete', c === task.items.length); }
+    });
+  }
+  function updateStudentPrintAnswers(a){
+    document.querySelectorAll('#studentTasks .item').forEach(row => {
+      const id = row.dataset.id;
+      const v = a.answers[id];
+      row.querySelector('.print-ans').textContent = v === 'yes' ? '☑ YES' : v === 'no' ? '☐ NO' : '☐ YES  ☐ NO';
+    });
+  }
+}
+
+/* ============================================================
+   ADD STUDENT (teacher)
+   ============================================================ */
+function openAddStudentModal(){ $('#addStudentForm').reset(); openModal('#addStudentModal'); }
+async function handleAddStudent(e){
+  e.preventDefault();
+  const name = $('#newName').value.trim();
+  const studentId = $('#newStudentId').value.trim();
+  const section = $('#newSection').value.trim();
+  const email = $('#newEmail').value.trim();
+  const phone = $('#newPhone').value.trim();
+  const usernameRaw = $('#newUsername').value.trim();
+  let passwordRaw = $('#newPassword').value.trim();
+
+  if (!name || name.length < 3){ toast('Name required (min 3 chars)', 'error'); return; }
+  if (!studentId || studentId.length < 3){ toast('Student ID required', 'error'); return; }
+  if (!section){ toast('Section required', 'error'); return; }
+  if (!isValidEmail(email)){ toast('Valid email required', 'error'); return; }
+  if (!phone || phone.length < 7){ toast('Valid phone required', 'error'); return; }
+
+  try {
+    const users = await DB.getUsers();
+    if (users.some(u => u.email && u.email.toLowerCase() === email.toLowerCase())){ toast('Email already in use', 'error'); return; }
+    if (users.some(u => u.studentId && u.studentId.toLowerCase() === studentId.toLowerCase())){ toast('Student ID already in use', 'error'); return; }
+    const username = usernameRaw || generateUsername(name, users);
+    if (users.some(u => u.username.toLowerCase() === username.toLowerCase())){ toast('Username already exists', 'error'); return; }
+    if (!passwordRaw) passwordRaw = generatePassword();
+    const salt = uuid().slice(0, 16);
+    const hash = await hashPassword(passwordRaw, salt);
+    await DB.saveUser({
+      id: uuid(), role: 'student', username, salt, passwordHash: hash,
+      name, section, studentId, email, phone, guardian: '', address: '',
+      active: true, profileComplete: true, createdAt: new Date().toISOString()
+    });
+    await DB.logAction('student_created', { name, username });
+    closeModal('#addStudentModal');
+    showCredentials(name, username, passwordRaw);
+    await renderTeacherSidebar();
+    await renderTeacherDashboard();
+  } catch(err){ toast('Failed: ' + err.message, 'error'); }
+}
+
+function showCredentials(name, username, password){
+  $('#credName').textContent = name;
+  $('#credUser').textContent = username;
+  $('#credPass').textContent = password;
+  openModal('#credsModal');
+}
+
+/* ============================================================
+   CSV IMPORT
+   ============================================================ */
+function openCsvModal(){ $('#csvPreview').innerHTML = ''; $('#csvInput').value = ''; openModal('#csvModal'); }
+async function handleCsvFile(file){
+  if (!file) return;
+  const text = await file.text();
+  const rows = parseCSV(text);
+  if (!rows.length){ toast('CSV is empty or invalid', 'error'); return; }
+  const preview = $('#csvPreview');
+  preview.innerHTML = `<div class="help" style="margin-top:6px">Detected <b>${rows.length}</b> row(s). Preview:</div>
+    <div style="max-height:200px;overflow:auto;border:1px solid var(--border);border-radius:8px">
+      <table>
+        <thead><tr>${Object.keys(rows[0]).map(k => `<th>${escapeHtml(k)}</th>`).join('')}</tr></thead>
+        <tbody>${rows.slice(0,15).map(r => `<tr>${Object.values(r).map(v => `<td>${escapeHtml(v)}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table>
+    </div>
+    <button class="btn btn-primary btn-block" style="margin-top:12px" id="btnConfirmImport">Import ${rows.length} Student(s)</button>`;
+  $('#btnConfirmImport').onclick = async () => {
+    showLoading('Importing...');
+    try {
+      const users = await DB.getUsers();
+      let imported = 0, skipped = 0;
+      for (const row of rows){
+        const name = (row.name || row.fullname || row['full name'] || '').trim();
+        if (!name || name.length < 3){ skipped++; continue; }
+        const email = (row.email || '').trim();
+        if (email && users.some(u => u.email && u.email.toLowerCase() === email.toLowerCase())){ skipped++; continue; }
+        const studentId = (row.student_id || row.studentid || row.lrn || '').trim();
+        if (studentId && users.some(u => u.studentId && u.studentId.toLowerCase() === studentId.toLowerCase())){ skipped++; continue; }
+        const section = (row.section || '').trim();
+        const phone = (row.phone || '').trim();
+        let username = (row.username || '').trim() || generateUsername(name, users);
+        if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) username = username + Math.floor(Math.random()*999);
+        const password = (row.password || '').trim() || generatePassword();
+        const salt = uuid().slice(0, 16);
+        const hash = await hashPassword(password, salt);
+        const u = {
+          id: uuid(), role: 'student', username, salt, passwordHash: hash,
+          name, section, studentId, email, phone, guardian: '', address: '',
+          active: true, profileComplete: true, createdAt: new Date().toISOString()
+        };
+        await DB.saveUser(u);
+        users.push(u);
+        imported++;
+      }
+      await DB.logAction('student_imported', { count: imported });
+      closeModal('#csvModal');
+      hideLoading();
+      toast(`📥 Imported ${imported}${skipped > 0 ? ', skipped ' + skipped : ''}`, 'success');
+      await renderTeacherSidebar();
+      await renderTeacherDashboard();
+    } catch(err){ hideLoading(); toast('Import failed: ' + err.message, 'error'); }
+  };
+}
+function parseCSV(text){
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim());
+  if (!lines.length) return [];
+  const header = parseCSVLine(lines[0]).map(h => h.trim().toLowerCase());
+  const rows = [];
+  for (let i = 1; i < lines.length; i++){
+    const cells = parseCSVLine(lines[i]);
+    const obj = {};
+    header.forEach((h, idx) => obj[h] = (cells[idx] || '').trim());
+    rows.push(obj);
+  }
+  return rows;
+}
+function parseCSVLine(line){
+  const res = []; let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++){
+    const ch = line[i];
+    if (inQ){ if (ch === '"' && line[i+1] === '"'){ cur += '"'; i++; } else if (ch === '"') inQ = false; else cur += ch; }
+    else { if (ch === '"') inQ = true; else if (ch === ','){ res.push(cur); cur = ''; } else cur += ch; }
+  }
+  res.push(cur);
+  return res;
+}
+
+/* ============================================================
+   CSV EXPORT
+   ============================================================ */
+function csvCell(v){ return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }
+async function exportAllCSV(){
+  await refreshCache();
+  const students = getStudentList();
+  if (!students.length){ toast('No students to export', 'error'); return; }
+  const header = ['Student Name','Student ID','Section','Email','Phone','Username','Status','Score','Total','Percentage','Submitted','Reviewed','Remarks', ...ALL_ITEMS.map(i => i.text)];
+  const lines = [header.map(csvCell).join(',')];
+  students.forEach(s => {
+    const a = getAssessment(s.id);
+    const sc = computeScore(a);
+    lines.push([s.name, s.studentId || '', s.section || '', s.email || '', s.phone || '', s.username, a.status || 'draft', sc.yes, sc.total, Math.round(sc.pct)+'%',
+      a.submittedAt ? formatDateTime(a.submittedAt) : '', a.reviewedAt ? formatDateTime(a.reviewedAt) : '', a.remarks || '',
+      ...ALL_ITEMS.map(it => (a.answers && a.answers[it.id]) ? a.answers
