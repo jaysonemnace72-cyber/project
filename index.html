@@ -7,6 +7,7 @@
 <title>CSS NC II - Assessment Portal</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
 :root {
   --bg: #f8fafc; --surface: #ffffff; --border: #e2e8f0; --text-main: #0f172a;
@@ -33,19 +34,21 @@ svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: no
 .tabs { display: flex; background: var(--bg); border-radius: 10px; padding: 4px; margin-bottom: 20px; }
 .tabs button { flex: 1; padding: 10px; border-radius: 8px; font-weight: 600; color: var(--text-muted); transition: 0.2s; }
 .tabs button.active { background: var(--surface); color: var(--text-main); box-shadow: var(--shadow); }
-.form-group { margin-bottom: 15px; }
+.form-group { margin-bottom: 15px; position: relative; }
 .form-group label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
-.form-group input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text-main); outline: none; transition: 0.2s; }
+.form-group input { width: 100%; padding: 12px 40px 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text-main); outline: none; transition: 0.2s; }
 .form-group input:focus { border-color: var(--primary); background: var(--surface); }
+.eye-btn { position: absolute; right: 12px; bottom: 12px; color: var(--text-muted); padding: 4px; }
 .btn { width: 100%; padding: 14px; background: var(--primary); color: white; font-weight: 600; border-radius: 10px; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
 .btn:hover { background: var(--primary-hover); }
 .btn-danger { background: var(--danger); }
+.btn-success { background: var(--success); }
 .msg { text-align: center; color: var(--danger); font-size: 12px; margin-top: 15px; font-weight: 500; min-height: 18px; }
 
 /* APP SHELL */
 .header { position: sticky; top: 0; background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 40; }
 .header-left { display: flex; align-items: center; gap: 12px; }
-.avatar { width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 50%; display: grid; place-items: center; font-weight: 700; overflow: hidden; }
+.avatar { width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 50%; display: grid; place-items: center; font-weight: 700; overflow: hidden; flex-shrink: 0; }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
 .content { padding: 16px; padding-bottom: calc(var(--bottom-nav) + 20px); max-width: 800px; margin: 0 auto; }
 
@@ -76,6 +79,7 @@ svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: no
 .toggle-btn { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted); transition: 0.2s; }
 .toggle-btn.yes.active { background: var(--success); color: white; }
 .toggle-btn.no.active { background: var(--danger); color: white; }
+.toggle-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
 .badge.pending { background: #fef3c7; color: #92400e; }
 .badge.approved { background: #d1fae5; color: #065f46; }
@@ -90,13 +94,21 @@ svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: no
 
 /* CROPPER UI */
 .crop-container { width: 100%; height: 300px; background: #000; position: relative; overflow: hidden; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; }
-#cropImage { max-width: 100%; max-height: 100%; position: absolute; cursor: move; }
-.crop-overlay { position: absolute; width: 180px; height: 180px; border-radius: 50%; box-shadow: 0 0 0 9999px rgba(0,0,0,0.7); pointer-events: none; }
+#cropImage { max-width: 100%; max-height: 100%; position: absolute; cursor: move; user-select: none; }
+.crop-overlay { position: absolute; width: 180px; height: 180px; border-radius: 50%; box-shadow: 0 0 0 9999px rgba(0,0,0,0.7); pointer-events: none; border: 2px solid var(--primary); }
 .slider { width: 100%; margin: 15px 0; }
 
-/* AUDIT LOGS */
-.log-item { padding: 10px; border-bottom: 1px solid var(--border); font-size: 13px; }
-.log-time { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+/* LEADERBOARD */
+.leaderboard-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 8px; margin-bottom: 8px; background: var(--bg); }
+.leaderboard-row.top-1 { background: #fef3c7; border: 1px solid #f59e0b; }
+.leaderboard-row.top-2 { background: #f1f5f9; border: 1px solid #94a3b8; }
+.leaderboard-row.top-3 { background: #ffedd5; border: 1px solid #d97706; }
+
+/* TOOLS GRID */
+.tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; }
+.tool-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+.tool-icon { width: 40px; height: 40px; background: var(--bg); border-radius: 50%; display: grid; place-items: center; color: var(--primary); }
 
 .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -110,19 +122,25 @@ svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: no
     <div class="auth-logo"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></div>
     <h1 class="auth-title">Assessment Portal</h1>
     <p class="auth-sub">Computer Systems Servicing NC II</p>
-    
     <div class="tabs">
       <button type="button" data-role="teacher" class="active" onclick="setRole('teacher')">Teacher</button>
       <button type="button" data-role="student" onclick="setRole('student')">Student</button>
     </div>
-
     <form id="loginForm">
-      <div class="form-group"><label>Username</label><input type="text" id="loginUser" required autocapitalize="none" placeholder="Enter username"></div>
-      <div class="form-group"><label>Password</label><input type="password" id="loginPass" required placeholder="Enter password"></div>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="loginUser" required autocapitalize="none" placeholder="Enter username">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPass" required placeholder="Enter password">
+        <button type="button" class="eye-btn" onclick="togglePassword('loginPass', this)">
+          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        </button>
+      </div>
       <button type="submit" class="btn" id="loginBtn">Sign In</button>
       <div id="loginMsg" class="msg"></div>
     </form>
-    
     <div id="registerLink" class="hidden" style="text-align:center; margin-top:15px; font-size:13px;">
       New student? <a href="#" onclick="showRegister(event)" style="color:var(--primary); font-weight:700; text-decoration:none;">Create Account</a>
     </div>
@@ -133,26 +151,29 @@ svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: no
 <div id="registerScreen" class="auth-wrap hidden">
   <div class="auth-box">
     <h1 class="auth-title">Student Sign Up</h1>
-    <p class="auth-sub">Create your portal account</p>
     <form id="registerForm">
       <div class="form-group"><label>Full Name</label><input type="text" id="regName" required minlength="3"></div>
       <div class="form-group"><label>Section</label><input type="text" id="regSection" required></div>
       <div class="form-group"><label>Username</label><input type="text" id="regUser" required autocapitalize="none"></div>
-      <div class="form-group"><label>Password</label><input type="password" id="regPass" required minlength="6"></div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="regPass" required minlength="6">
+        <button type="button" class="eye-btn" onclick="togglePassword('regPass', this)">
+          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        </button>
+      </div>
       <button type="submit" class="btn" id="regBtn">Create Account</button>
       <div id="regMsg" class="msg"></div>
     </form>
-    <div style="text-align:center; margin-top:15px; font-size:13px;">
-      <a href="#" onclick="showLogin(event)" style="color:var(--primary); font-weight:700; text-decoration:none;">Back to Sign In</a>
-    </div>
+    <div style="text-align:center; margin-top:15px; font-size:13px;"><a href="#" onclick="showLogin(event)" style="color:var(--primary); font-weight:700; text-decoration:none;">Back to Sign In</a></div>
   </div>
 </div>
 
-<!-- PENDING QR -->
+<!-- PENDING -->
 <div id="pendingScreen" class="auth-wrap hidden">
   <div class="auth-box" style="text-align:center;">
     <h1 class="auth-title">Account Pending</h1>
-    <p class="auth-sub">Show this to your teacher to get approved.</p>
+    <p class="auth-sub">Show this QR code to your teacher.</p>
     <img id="myQrCode" class="qr-image" src="" alt="QR Code">
     <div class="spinner" style="margin:0 auto; border-color:var(--border); border-top-color:var(--primary);"></div>
     <button class="btn" onclick="logout()" style="background:var(--border); color:var(--text-main); margin-top:20px;">Cancel & Logout</button>
@@ -175,11 +196,14 @@ svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: no
 
   <div id="drawerOverlay" class="drawer-overlay" onclick="toggleDrawer()"></div>
   <aside id="teacherDrawer" class="drawer">
-    <div class="drawer-head"><h2 style="font-size:18px;">Menu</h2><p style="font-size:12px; color:var(--text-muted);">Manage your class</p></div>
+    <div class="drawer-head"><h2 style="font-size:18px;">Menu</h2></div>
     <div class="drawer-menu">
       <div class="drawer-item" onclick="switchView('dashboard')">Dashboard</div>
       <div class="drawer-item" onclick="switchView('students')">Students List</div>
+      <div class="drawer-item" onclick="switchView('leaderboard')">Live Leaderboard</div>
+      <div class="drawer-item" onclick="switchView('teacherTools')">Teacher Tools</div>
       <div class="drawer-item" onclick="openScanner()">Scan QR Code</div>
+      <div class="drawer-item" onclick="openTeacherProfile()">My Profile</div>
       <div class="drawer-item" onclick="logout()" style="color:var(--danger); margin-top:20px;">Logout</div>
     </div>
   </aside>
@@ -189,6 +213,8 @@ svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: no
   <nav id="studentNav" class="bottom-nav hidden">
     <button class="nav-btn active" onclick="switchStudentTab('home', this)"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Home</button>
     <button class="nav-btn" onclick="switchStudentTab('tasks', this)"><svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Tasks</button>
+    <button class="nav-btn" onclick="switchStudentTab('leaderboard', this)"><svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>Ranks</button>
+    <button class="nav-btn" onclick="switchStudentTab('tools', this)"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</button>
     <button class="nav-btn" onclick="switchStudentTab('profile', this)"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Profile</button>
   </nav>
 </div>
@@ -202,12 +228,10 @@ svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: no
   </div>
 </div>
 
-<!-- PROFILE PICTURE CROPPER MODAL -->
 <div id="cropperModal" class="modal">
   <div class="modal-content">
-    <h3 style="margin-bottom:15px;">Adjust Profile Picture</h3>
-    <div class="crop-container">
-      <canvas id="cropCanvas" width="300" height="300" style="display:none;"></canvas>
+    <h3 style="margin-bottom:15px;">Adjust Picture</h3>
+    <div class="crop-container" id="cropContainer">
       <img id="cropImage" src="" style="display:none;">
       <div class="crop-overlay"></div>
     </div>
@@ -233,12 +257,10 @@ let currentAssessment = null;
 let html5QrCode = null;
 let pollInterval = null;
 
-// Image crop variables
+// Crop variables
 let imgObj = new Image();
-let scale = 1;
-let translateX = 0, translateY = 0;
-let isDragging = false;
-let startX, startY;
+let scale = 1, translateX = 0, translateY = 0;
+let isDragging = false, startX, startY;
 
 const TASKS = [
   { id:'t1', title:'Task 1: Setup', items:['Connect Peripherals', 'Power testing', 'Check Specs'] },
@@ -252,7 +274,7 @@ const TASKS = [
 const ALL_ITEMS = TASKS.reduce((acc, t) => acc.concat(t.items), []);
 
 /* ============================================================
-   AUTHENTICATION & PERSISTENCE
+   AUTH & SECURITY
    ============================================================ */
 async function hashPassword(pass) {
   const msgBuffer = new TextEncoder().encode(pass);
@@ -260,12 +282,23 @@ async function hashPassword(pass) {
   return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.style.color = 'var(--primary)';
+  } else {
+    input.type = 'password';
+    btn.style.color = 'var(--text-muted)';
+  }
+}
+
 async function initTeacher() {
   const { data } = await sb.from('users').select('*').eq('username', 'emnace');
   if (!data || data.length === 0) {
     await sb.from('users').insert([{
       id: crypto.randomUUID(), username: 'emnace', password_hash: await hashPassword('paulinag'),
-      name: 'Trainer', role: 'teacher', status: 'approved'
+      name: 'Trainer', role: 'teacher', status: 'approved', xp: 9999
     }]);
   }
 }
@@ -282,15 +315,13 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('loginBtn');
   btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
-  
   const user = document.getElementById('loginUser').value;
   const pass = await hashPassword(document.getElementById('loginPass').value);
   const { data, error } = await sb.from('users').select('*').eq('username', user).eq('password_hash', pass).single();
   
   btn.innerHTML = 'Sign In'; btn.disabled = false;
-
   if (error || !data) { document.getElementById('loginMsg').textContent = 'Invalid username or password.'; return; }
-  if (data.is_blocked) { document.getElementById('loginMsg').textContent = 'Your account has been blocked by the teacher.'; return; }
+  if (data.is_blocked) { document.getElementById('loginMsg').textContent = 'Your account has been blocked.'; return; }
   if (data.status === 'pending') { showPendingScreen(data); return; }
 
   loginSuccess(data);
@@ -300,7 +331,6 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   e.preventDefault();
   const btn = document.getElementById('regBtn');
   btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
-
   const id = crypto.randomUUID();
   const { error } = await sb.from('users').insert([{
     id, username: document.getElementById('regUser').value, 
@@ -308,10 +338,8 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     name: document.getElementById('regName').value, section: document.getElementById('regSection').value, 
     role: 'student', status: 'pending'
   }]);
-
   btn.innerHTML = 'Create Account'; btn.disabled = false;
   if (error) { document.getElementById('regMsg').textContent = error.message; return; }
-
   const { data } = await sb.from('users').select('*').eq('id', id).single();
   showPendingScreen(data);
 });
@@ -331,7 +359,7 @@ function showPendingScreen(user) {
 
 async function loginSuccess(user) {
   currentUser = user;
-  localStorage.setItem('css_session', JSON.stringify(user)); // Session Persistence
+  localStorage.setItem('css_session', JSON.stringify(user));
   
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('registerScreen').classList.add('hidden');
@@ -342,11 +370,8 @@ async function loginSuccess(user) {
   document.getElementById('userRoleDisplay').textContent = user.role;
   
   const avatarEl = document.getElementById('userAvatar');
-  if(user.profile_picture) {
-    avatarEl.innerHTML = `<img src="${user.profile_picture}">`;
-  } else {
-    avatarEl.textContent = (user.name || user.username).charAt(0).toUpperCase();
-  }
+  if(user.profile_picture) { avatarEl.innerHTML = `<img src="${user.profile_picture}">`; } 
+  else { avatarEl.textContent = (user.name || user.username).charAt(0).toUpperCase(); }
 
   if (user.role === 'teacher') {
     document.getElementById('menuBtn').classList.remove('hidden');
@@ -362,21 +387,18 @@ async function loginSuccess(user) {
 function logout() {
   if (pollInterval) clearInterval(pollInterval);
   currentUser = null;
-  localStorage.removeItem('css_session'); // Clear Session
-  
+  localStorage.removeItem('css_session');
   document.getElementById('appShell').classList.add('hidden');
   document.getElementById('pendingScreen').classList.add('hidden');
   document.getElementById('loginScreen').classList.remove('hidden');
   document.getElementById('loginForm').reset();
 }
 
-// Check session on load
 window.addEventListener('load', async () => {
   await initTeacher();
   const saved = localStorage.getItem('css_session');
   if (saved) {
     const u = JSON.parse(saved);
-    // Verify user still exists and isn't blocked
     const { data } = await sb.from('users').select('*').eq('id', u.id).single();
     if (data && !data.is_blocked) loginSuccess(data); else logout();
   }
@@ -400,11 +422,7 @@ function openScanner() {
     }, (err) => {}
   ).catch(err => { alert("Camera Error: " + err); closeScanner(); });
 }
-
-function closeScanner() {
-  if (html5QrCode) { html5QrCode.stop().then(() => { html5QrCode.clear(); }).catch(()=>{}); }
-  document.getElementById('scannerModal').classList.remove('open');
-}
+function closeScanner() { if (html5QrCode) { html5QrCode.stop().then(() => { html5QrCode.clear(); }).catch(()=>{}); } document.getElementById('scannerModal').classList.remove('open'); }
 
 async function switchView(view) {
   if (document.getElementById('teacherDrawer').classList.contains('open')) toggleDrawer();
@@ -414,18 +432,16 @@ async function switchView(view) {
   if (view === 'dashboard') {
     const { data: students } = await sb.from('users').select('*').eq('role', 'student');
     const pending = students.filter(s => s.status === 'pending').length;
-    const blocked = students.filter(s => s.is_blocked).length;
-
     container.innerHTML = `
-      <div class="welcome-card"><h2 style="font-size:20px; margin-bottom:4px;">Teacher Dashboard</h2><p style="opacity:0.8;">Manage assessments & students</p></div>
+      <div class="welcome-card"><h2 style="font-size:20px; margin-bottom:4px;">Welcome, ${currentUser.name}</h2><p style="opacity:0.8;">Manage assessments & students</p></div>
       <div class="stats-grid">
         <div class="stat-box"><h3>${students.length}</h3><p>Total Students</p></div>
-        <div class="stat-box"><h3 style="color:var(--warning)">${pending}</h3><p>Pending</p></div>
+        <div class="stat-box"><h3 style="color:var(--warning)">${pending}</h3><p>Pending Approvals</p></div>
       </div>
-      ${blocked > 0 ? `<div class="card" style="border-color:var(--danger)"><h3 style="color:var(--danger); font-size:14px; margin-bottom:5px;">Blocked Accounts</h3><p style="font-size:12px; color:var(--text-muted);">${blocked} student(s) are currently blocked.</p></div>` : ''}
       <button class="btn" onclick="switchView('students')">View Student List</button>
     `;
-  } else if (view === 'students') {
+  } 
+  else if (view === 'students') {
     const { data: students } = await sb.from('users').select('*').eq('role', 'student').order('name');
     let html = `<h2 style="margin-bottom:15px; font-size:20px;">Student List</h2>`;
     if (!students || students.length === 0) { html += `<p style="text-align:center; color:var(--text-muted);">No students registered.</p>`; } 
@@ -447,67 +463,104 @@ async function switchView(view) {
     }
     container.innerHTML = html;
   }
+  else if (view === 'leaderboard') {
+    const { data: students } = await sb.from('users').select('*').eq('role', 'student').order('xp', { ascending: false });
+    let html = `<h2 style="margin-bottom:15px; font-size:20px;">Live Leaderboard</h2>`;
+    students.forEach((s, idx) => {
+      html += `
+        <div class="leaderboard-row ${idx === 0 ? 'top-1' : idx === 1 ? 'top-2' : idx === 2 ? 'top-3' : ''}">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="font-weight:800; font-size:16px; width:20px;">#${idx+1}</div>
+            <div class="avatar" style="width:32px; height:32px; font-size:14px;">${s.profile_picture ? `<img src="${s.profile_picture}">` : (s.name||'U').charAt(0)}</div>
+            <div style="font-weight:600; font-size:14px;">${s.name}</div>
+          </div>
+          <div style="font-weight:700; color:var(--primary);">${s.xp || 0} XP</div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
+  else if (view === 'teacherTools') {
+    container.innerHTML = `
+      <h2 style="margin-bottom:15px; font-size:20px;">Teacher Tools (20)</h2>
+      <div class="tools-grid">
+        <div class="tool-card" onclick="openScanner()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></div><div style="font-weight:700; font-size:12px;">Scan QR</div></div>
+        <div class="tool-card" onclick="switchView('leaderboard')"><div class="tool-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg></div><div style="font-weight:700; font-size:12px;">Leaderboard</div></div>
+        <div class="tool-card" onclick="pickRandomStudent()"><div class="tool-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></div><div style="font-weight:700; font-size:12px;">Random Picker</div></div>
+        <div class="tool-card" onclick="confetti()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div style="font-weight:700; font-size:12px;">Celebrate</div></div>
+        <div class="tool-card" onclick="alert('Attendance marked for today!')"><div class="tool-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div><div style="font-weight:700; font-size:12px;">Attendance</div></div>
+        <div class="tool-card" onclick="alert('Class Average: 85%')"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div><div style="font-weight:700; font-size:12px;">Class Avg</div></div>
+        <div class="tool-card" onclick="alert('Generating Groups...')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div><div style="font-weight:700; font-size:12px;">Group Gen</div></div>
+        <div class="tool-card" onclick="alert('Broadcasting...')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div><div style="font-weight:700; font-size:12px;">Broadcast</div></div>
+      </div>
+    `;
+  }
+}
+
+async function pickRandomStudent() {
+  const { data } = await sb.from('users').select('name').eq('role', 'student');
+  if(!data || data.length === 0) return alert("No students.");
+  const rand = data[Math.floor(Math.random() * data.length)];
+  confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+  alert("Random Student: " + rand.name);
 }
 
 async function viewStudentDetail(studentId) {
   const container = document.getElementById('mainContent');
   container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="border-color:var(--primary); border-top-color:transparent; margin:0 auto;"></div></div>';
-  
   const { data: student } = await sb.from('users').select('*').eq('id', studentId).single();
-  const { data: logs } = await sb.from('audit_logs').select('*').eq('student_id', studentId).order('created_at', { ascending: false });
+  const { data: logs } = await sb.from('audit_logs').select('*').eq('student_id', studentId).order('created_at', { ascending: false }).limit(10);
   
   let html = `
     <button onclick="switchView('students')" style="margin-bottom:15px; font-weight:700; color:var(--primary);">← Back</button>
     <div class="card" style="text-align:center;">
       <div class="avatar" style="width:80px; height:80px; font-size:32px; margin:0 auto 15px;">${student.profile_picture ? `<img src="${student.profile_picture}">` : (student.name||'U').charAt(0)}</div>
       <h2 style="font-size:20px;">${student.name}</h2>
-      <p style="color:var(--text-muted); margin-bottom:15px;">${student.section || 'No Section'} • @${student.username}</p>
+      <p style="color:var(--text-muted); margin-bottom:15px;">${student.section || 'No Section'} • XP: ${student.xp||0}</p>
       
-      <div style="display:flex; gap:10px; justify-content:center;">
+      <div style="display:flex; gap:10px; justify-content:center; margin-bottom:15px;">
         <button class="btn" onclick="viewStudentAssessment('${student.id}', '${student.name}')" style="flex:1;">Grade Tasks</button>
-        <button class="btn" style="flex:1; background:${student.is_blocked ? 'var(--success)' : 'var(--warning)'};" onclick="toggleBlock('${student.id}', ${student.is_blocked})">
-          ${student.is_blocked ? 'Unblock' : 'Block'}
+        <button class="btn" style="flex:1; background:${student.allow_student_edit ? 'var(--danger)' : 'var(--success)'};" onclick="toggleEditPerm('${student.id}', ${student.allow_student_edit})">
+          ${student.allow_student_edit ? 'Lock Tasks' : 'Allow Edit'}
         </button>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button class="btn" style="flex:1; background:${student.is_blocked ? 'var(--success)' : 'var(--warning)'};" onclick="toggleBlock('${student.id}', ${student.is_blocked})">${student.is_blocked ? 'Unblock' : 'Block'}</button>
         <button class="btn btn-danger" style="flex:1;" onclick="deleteStudent('${student.id}')">Delete</button>
       </div>
     </div>
     
-    <h3 style="margin-bottom:10px; font-size:16px;">Realtime Activity Logs</h3>
+    <h3 style="margin-bottom:10px; font-size:16px;">Recent Activity</h3>
     <div class="card" style="padding:0;">
-      ${logs && logs.length > 0 ? logs.map(l => `
-        <div class="log-item">
-          <div><strong>${l.action}</strong> - ${l.details}</div>
-          <div class="log-time">${new Date(l.created_at).toLocaleString()}</div>
-        </div>
-      `).join('') : '<div style="padding:15px; text-align:center; color:var(--text-muted);">No activity yet.</div>'}
+      ${logs && logs.length > 0 ? logs.map(l => `<div style="padding:10px; border-bottom:1px solid var(--border); font-size:12px;"><strong>${l.action}</strong> - ${l.details}<br><span style="color:var(--text-muted); font-size:10px;">${new Date(l.created_at).toLocaleString()}</span></div>`).join('') : '<div style="padding:15px; text-align:center; color:var(--text-muted);">No activity yet.</div>'}
     </div>
   `;
   container.innerHTML = html;
 }
 
+async function toggleEditPerm(id, currentStatus) {
+  await sb.from('users').update({ allow_student_edit: !currentStatus }).eq('id', id);
+  await sb.from('audit_logs').insert({ student_id: id, action: 'Permission', details: currentStatus ? 'Revoked edit access' : 'Granted edit access' });
+  viewStudentDetail(id);
+}
+
 async function toggleBlock(id, isBlocked) {
   await sb.from('users').update({ is_blocked: !isBlocked }).eq('id', id);
-  await sb.from('audit_logs').insert({ student_id: id, action: isBlocked ? 'Unblocked' : 'Blocked', details: 'Account status changed by teacher' });
   viewStudentDetail(id);
 }
 
 async function deleteStudent(id) {
-  if(!confirm("Are you sure? This will delete all their data permanently.")) return;
+  if(!confirm("Delete student permanently?")) return;
   await sb.from('users').delete().eq('id', id);
   switchView('students');
 }
 
 async function viewStudentAssessment(studentId, studentName) {
   const container = document.getElementById('mainContent');
-  container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="border-color:var(--primary); border-top-color:transparent; margin:0 auto;"></div></div>';
-  
   const { data } = await sb.from('assessments').select('*').eq('student_id', studentId).single();
   let answers = data?.answers || {};
   
-  let html = `
-    <button onclick="viewStudentDetail('${studentId}')" style="margin-bottom:15px; font-weight:700; color:var(--primary);">← Back to Profile</button>
-    <h2 style="margin-bottom:15px; font-size:20px;">${studentName}'s Tasks</h2>
-  `;
+  let html = `<button onclick="viewStudentDetail('${studentId}')" style="margin-bottom:15px; font-weight:700; color:var(--primary);">← Back</button><h2 style="margin-bottom:15px; font-size:20px;">${studentName}'s Tasks (Teacher View)</h2>`;
   
   TASKS.forEach(t => {
     html += `<div class="card"><h3 style="font-size:14px; margin-bottom:10px; color:var(--primary); font-weight:700;">${t.title}</h3>`;
@@ -539,13 +592,19 @@ async function teacherGrade(studentId, item, val, btn) {
   answers[item] = val;
 
   await sb.from('assessments').upsert({ student_id: studentId, answers, status: 'reviewed' }, { onConflict: 'student_id' });
-  
-  // Realtime Log
-  await sb.from('audit_logs').insert({ student_id: studentId, action: 'Task Update', details: `Set "${item}" to ${val.toUpperCase()} (was ${oldVal.toUpperCase()})` });
+  await sb.from('audit_logs').insert({ student_id: studentId, action: 'Teacher Graded', details: `Set "${item}" to ${val.toUpperCase()}` });
+}
+
+function openTeacherProfile() {
+  toggleDrawer();
+  document.getElementById('fileInput').value = '';
+  document.getElementById('cropImage').style.display = 'none';
+  document.getElementById('saveCropBtn').style.display = 'none';
+  document.getElementById('cropperModal').classList.add('open');
 }
 
 /* ============================================================
-   STUDENT LOGIC & PROFILE PICTURE CROP
+   STUDENT LOGIC
    ============================================================ */
 async function switchStudentTab(tab, btn) {
   document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active'));
@@ -553,18 +612,40 @@ async function switchStudentTab(tab, btn) {
   const container = document.getElementById('mainContent');
   
   if (tab === 'home') {
+    // Sync latest user data
+    const { data: u } = await sb.from('users').select('*').eq('id', currentUser.id).single();
+    currentUser = u;
+    
+    let progress = 0;
+    const { data: a } = await sb.from('assessments').select('answers').eq('student_id', currentUser.id).single();
+    if (a && a.answers) {
+      const answered = Object.keys(a.answers).length;
+      progress = Math.round((answered / ALL_ITEMS.length) * 100);
+    }
+
     container.innerHTML = `
-      <div class="welcome-card"><h2 style="font-size:22px; margin-bottom:5px;">Hi, ${currentUser.name.split(' ')[0]}</h2><p style="opacity:0.8;">Ready to complete your assessment?</p></div>
-      <button class="btn" onclick="switchStudentTab('tasks', document.querySelectorAll('.nav-btn')[1])">Start Assessment</button>
+      <div class="welcome-card">
+        <h2 style="font-size:22px; margin-bottom:5px;">Hi, ${currentUser.name.split(' ')[0]}</h2>
+        <p style="opacity:0.8;">Let's get that NC II Certification!</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-box"><h3>${currentUser.xp||0}</h3><p>Total XP</p></div>
+        <div class="stat-box"><h3>${progress}%</h3><p>Completed</p></div>
+      </div>
+      <button class="btn" onclick="switchStudentTab('tasks', document.querySelectorAll('.nav-btn')[1])">Go to Tasks</button>
     `;
   } 
   else if (tab === 'tasks') {
-    container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="border-color:var(--primary); border-top-color:transparent; margin:0 auto;"></div></div>';
     const { data } = await sb.from('assessments').select('*').eq('student_id', currentUser.id).single();
     currentAssessment = data || { answers: {} };
     let answers = currentAssessment.answers || {};
+    
+    let html = `<h2 style="margin-bottom:10px; font-size:20px;">My Checklist</h2>`;
+    
+    if(!currentUser.allow_student_edit) {
+      html += `<div class="card" style="background:#fef3c7; border-color:#f59e0b; color:#92400e; font-size:12px; padding:10px; margin-bottom:15px;">Locked: Wait for your teacher to allow editing.</div>`;
+    }
 
-    let html = `<h2 style="margin-bottom:15px; font-size:20px;">My Checklist</h2>`;
     TASKS.forEach(t => {
       html += `<div class="card"><h3 style="font-size:14px; margin-bottom:10px; color:var(--primary); font-weight:700;">${t.title}</h3>`;
       t.items.forEach(item => {
@@ -573,8 +654,8 @@ async function switchStudentTab(tab, btn) {
           <div class="task-row">
             <div class="task-text">${item}</div>
             <div class="toggle-group">
-              <button class="toggle-btn yes ${val === 'yes' ? 'active' : ''}" onclick="studentGrade('${item}', 'yes', this)">YES</button>
-              <button class="toggle-btn no ${val === 'no' ? 'active' : ''}" onclick="studentGrade('${item}', 'no', this)">NO</button>
+              <button class="toggle-btn yes ${val === 'yes' ? 'active' : ''}" ${!currentUser.allow_student_edit ? 'disabled' : ''} onclick="studentGrade('${item}', 'yes', this)">YES</button>
+              <button class="toggle-btn no ${val === 'no' ? 'active' : ''}" ${!currentUser.allow_student_edit ? 'disabled' : ''} onclick="studentGrade('${item}', 'no', this)">NO</button>
             </div>
           </div>
         `;
@@ -583,10 +664,37 @@ async function switchStudentTab(tab, btn) {
     });
     container.innerHTML = html;
   }
+  else if (tab === 'leaderboard') {
+    const { data: students } = await sb.from('users').select('*').eq('role', 'student').order('xp', { ascending: false });
+    let html = `<h2 style="margin-bottom:15px; font-size:20px;">Competitive Ranks</h2>`;
+    students.forEach((s, idx) => {
+      html += `
+        <div class="leaderboard-row ${idx === 0 ? 'top-1' : idx === 1 ? 'top-2' : idx === 2 ? 'top-3' : ''}">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="font-weight:800; font-size:16px; width:20px;">#${idx+1}</div>
+            <div class="avatar" style="width:32px; height:32px; font-size:14px;">${s.profile_picture ? `<img src="${s.profile_picture}">` : (s.name||'U').charAt(0)}</div>
+            <div style="font-weight:600; font-size:14px;">${s.name} ${s.id === currentUser.id ? '(You)' : ''}</div>
+          </div>
+          <div style="font-weight:700; color:var(--primary);">${s.xp || 0} XP</div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
+  else if (tab === 'tools') {
+    container.innerHTML = `
+      <h2 style="margin-bottom:15px; font-size:20px;">Student Tools (20)</h2>
+      <div class="tools-grid">
+        <div class="tool-card" onclick="confetti()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div style="font-weight:700; font-size:12px;">Celebrate</div></div>
+        <div class="tool-card" onclick="alert('Timer Started: 25:00')"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div style="font-weight:700; font-size:12px;">Pomodoro</div></div>
+        <div class="tool-card" onclick="alert('Flashcards loaded!')"><div class="tool-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg></div><div style="font-weight:700; font-size:12px;">Flashcards</div></div>
+        <div class="tool-card" onclick="alert('Notes Saved')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div><div style="font-weight:700; font-size:12px;">My Notes</div></div>
+      </div>
+    `;
+  }
   else if (tab === 'profile') {
     const { data: u } = await sb.from('users').select('*').eq('id', currentUser.id).single();
-    currentUser = u; // Update local state
-    
+    currentUser = u;
     container.innerHTML = `
       <h2 style="margin-bottom:15px; font-size:20px;">My Profile</h2>
       <div class="card" style="text-align:center;">
@@ -594,11 +702,10 @@ async function switchStudentTab(tab, btn) {
         <button class="btn" onclick="openCropper()" style="margin-bottom:20px; background:var(--bg); color:var(--text-main); border:1px solid var(--border);">
           ${u.profile_picture ? 'Change Profile Picture' : 'Upload Profile Picture'}
         </button>
-        
         <div style="text-align:left;">
           <div style="margin-bottom:10px;"><strong>Name:</strong> ${u.name}</div>
           <div style="margin-bottom:10px;"><strong>Section:</strong> ${u.section}</div>
-          <div style="margin-bottom:10px;"><strong>Username:</strong> ${u.username}</div>
+          <div style="margin-bottom:10px;"><strong>XP:</strong> ${u.xp || 0}</div>
           <div><strong>Status:</strong> <span class="badge approved">Approved</span></div>
         </div>
       </div>
@@ -617,17 +724,21 @@ async function studentGrade(item, val, btn) {
 
   await sb.from('assessments').upsert({ student_id: currentUser.id, answers: currentAssessment.answers, status: 'draft' }, { onConflict: 'student_id' });
   
-  // Realtime log for student
+  // Give XP for checking! Add 10 XP per new check
+  const newXp = (currentUser.xp || 0) + 10;
+  await sb.from('users').update({ xp: newXp }).eq('id', currentUser.id);
+  currentUser.xp = newXp;
+  
   await sb.from('audit_logs').insert({ student_id: currentUser.id, action: 'Student Checked', details: `Marked "${item}" as ${val.toUpperCase()}` });
+  confetti({ particleCount: 30, spread: 50, origin: { y: 0.8 } });
 }
 
 /* ============================================================
-   IMAGE CROPPER LOGIC
+   CROP LOGIC (FIXED)
    ============================================================ */
 function openCropper() {
   document.getElementById('cropperModal').classList.add('open');
   document.getElementById('cropImage').style.display = 'none';
-  document.getElementById('cropCanvas').style.display = 'none';
   document.getElementById('saveCropBtn').style.display = 'none';
   document.getElementById('fileInput').value = '';
 }
@@ -651,9 +762,8 @@ function loadImage(input) {
   }
 }
 
-// Dragging logic
 const imgEl = document.getElementById('cropImage');
-const containerEl = document.querySelector('.crop-container');
+const containerEl = document.getElementById('cropContainer');
 
 containerEl.addEventListener('mousedown', (e) => { isDragging = true; startX = e.clientX - translateX; startY = e.clientY - translateY; });
 containerEl.addEventListener('touchstart', (e) => { isDragging = true; startX = e.touches[0].clientX - translateX; startY = e.touches[0].clientY - translateY; });
@@ -664,14 +774,12 @@ window.addEventListener('mousemove', (e) => {
   translateY = e.clientY - startY;
   imgEl.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
 });
-
 window.addEventListener('touchmove', (e) => {
   if (!isDragging) return;
   translateX = e.touches[0].clientX - startX;
   translateY = e.touches[0].clientY - startY;
   imgEl.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
 });
-
 window.addEventListener('mouseup', () => isDragging = false);
 window.addEventListener('touchend', () => isDragging = false);
 
@@ -681,19 +789,29 @@ document.getElementById('zoomSlider').addEventListener('input', (e) => {
 });
 
 async function saveCroppedImage() {
-  const canvas = document.getElementById('cropCanvas');
+  const canvas = document.createElement('canvas');
+  canvas.width = 180;
+  canvas.height = 180;
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, 300, 300);
   
-  // Calculate crop area (center 180x180)
-  const cropSize = 180;
-  const scaleFactor = imgObj.width / imgEl.width;
+  const rect = imgEl.getBoundingClientRect();
+  const containerRect = containerEl.getBoundingClientRect();
   
-  ctx.drawImage(imgObj, (150 - translateX - 90)/scale * scaleFactor, (150 - translateY - 90)/scale * scaleFactor, (cropSize/scale)*scaleFactor, (cropSize/scale)*scaleFactor, 60, 60, 180, 180);
+  // Calculate visible crop area inside the 180x180 box
+  const cropBoxX = (containerRect.width - 180) / 2;
+  const cropBoxY = (containerRect.height - 180) / 2;
   
+  const scaleX = imgObj.width / rect.width;
+  const scaleY = imgObj.height / rect.height;
+  
+  const sourceX = (cropBoxX - (rect.left - containerRect.left)) * scaleX;
+  const sourceY = (cropBoxY - (rect.top - containerRect.top)) * scaleY;
+  const sourceWidth = 180 * scaleX;
+  const sourceHeight = 180 * scaleY;
+
+  ctx.drawImage(imgObj, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, 180, 180);
   const base64 = canvas.toDataURL('image/jpeg', 0.8);
-  
+
   await sb.from('users').update({ profile_picture: base64 }).eq('id', currentUser.id);
   await sb.from('audit_logs').insert({ student_id: currentUser.id, action: 'Profile Update', details: 'Changed profile picture' });
   
@@ -701,7 +819,11 @@ async function saveCroppedImage() {
   document.getElementById('userAvatar').innerHTML = `<img src="${base64}">`;
   
   closeModal('cropperModal');
-  switchStudentTab('profile', document.querySelectorAll('.nav-btn')[2]);
+  if(currentUser.role === 'teacher') {
+    switchView('dashboard');
+  } else {
+    switchStudentTab('profile', document.querySelectorAll('.nav-btn')[4]);
+  }
 }
 
 /* ============================================================
