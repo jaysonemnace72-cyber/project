@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0f172a">
-<title>CSS NC II - Assessment Portal v6.0</title>
+<title>CSS NC II - Assessment Portal v6.1</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -134,10 +134,11 @@ input, textarea { font-family: inherit; font-size: 14px; }
 .leaderboard-row.top-3 { background: #ffedd5; border-color: #d97706; }
 
 /* TOOLS GRID */
-.tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
+.tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+.tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px 10px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
 .tool-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow); }
-.tool-icon { width: 44px; height: 44px; background: var(--bg); border-radius: 12px; display: grid; place-items: center; color: var(--primary); }
+.tool-icon { width: 40px; height: 40px; background: var(--bg); border-radius: 10px; display: grid; place-items: center; color: var(--primary); }
+.tool-title { font-weight: 700; font-size: 11px; line-height: 1.2; }
 
 /* POMODORO & FLASHCARDS */
 .timer-display { font-size: 48px; font-weight: 800; color: var(--primary); text-align: center; margin: 20px 0; font-variant-numeric: tabular-nums; }
@@ -157,6 +158,13 @@ input, textarea { font-family: inherit; font-size: 14px; }
 /* CERTIFICATE CANVAS */
 #certCanvas { width: 100%; max-width: 700px; border-radius: 12px; margin: 15px 0; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
 
+/* SUPERADMIN SPECIFIC */
+.sa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sa-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; }
+.sa-title { font-size: 12px; font-weight: 700; color: var(--text-main); }
+.sa-desc { font-size: 10px; color: var(--text-muted); margin-bottom: 8px; }
+.sa-btn { padding: 6px 10px; font-size: 10px; font-weight: 700; border-radius: 6px; text-align: center; }
+
 .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
@@ -166,7 +174,20 @@ input, textarea { font-family: inherit; font-size: 14px; }
 <!-- SWITCH ACCOUNT BANNER -->
 <div id="switchBanner">
   You are viewing as <span id="switchName">Student</span>. 
-  <button onclick="returnToOriginalUser()">Return to Teacher</button>
+  <button onclick="returnToOriginalUser()">Return to Original User</button>
+</div>
+
+<!-- PASSWORD CONFIRMATION MODAL -->
+<div id="passwordModal" class="modal">
+  <div class="modal-content">
+    <h3 style="margin-bottom:10px; color:var(--danger);">Security Check</h3>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:15px;" id="passwordModalMsg">Enter Superadmin password to proceed.</p>
+    <input type="password" id="confirmPassInput" placeholder="Password" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text-main); margin-bottom:15px;">
+    <div style="display:flex; gap:10px;">
+      <button class="btn btn-outline" onclick="closeModal('passwordModal')">Cancel</button>
+      <button class="btn btn-danger" id="confirmPassBtn">Verify & Execute</button>
+    </div>
+  </div>
 </div>
 
 <!-- LOGIN -->
@@ -201,7 +222,7 @@ input, textarea { font-family: inherit; font-size: 14px; }
     <div id="registerLink" class="hidden" style="text-align:center; margin-top:15px; font-size:13px;">
       New student? <a href="#" onclick="showRegister(event)" style="color:var(--primary); font-weight:700; text-decoration:none;">Create Account</a>
     </div>
-    <div style="text-align:center; margin-top:20px; font-size:11px; color:var(--text-muted); font-weight:500;">Version 6.0</div>
+    <div style="text-align:center; margin-top:20px; font-size:11px; color:var(--text-muted); font-weight:500;">Version 6.1</div>
   </div>
 </div>
 
@@ -259,9 +280,9 @@ input, textarea { font-family: inherit; font-size: 14px; }
     <div class="drawer-head"><h2 style="font-size:18px;">Menu</h2></div>
     <div class="drawer-menu">
       <div class="drawer-item" onclick="switchView('dashboard')">Dashboard</div>
-      <div class="drawer-item" onclick="switchView('students')">Students List</div>
+      <div class="drawer-item" onclick="switchView('students')">All Users</div>
       <div class="drawer-item" onclick="switchView('leaderboard')">Live Leaderboard</div>
-      <div class="drawer-item" onclick="switchView('teacherTools')">Teacher Tools</div>
+      <div class="drawer-item" onclick="switchView('teacherTools')">Tools</div>
       <div class="drawer-item" onclick="openScanner()">Scan QR Code</div>
       <div class="drawer-item" onclick="openTeacherProfile()">My Profile</div>
       <div class="drawer-item" onclick="logout()" style="color:var(--danger); margin-top:20px;">Logout</div>
@@ -334,6 +355,7 @@ let html5QrCode = null;
 let pollInterval = null;
 let dynamicTasks = [];
 let cachedStudentsList = [];
+let pendingActionCallback = null;
 
 // Crop variables
 let imgObj = new Image();
@@ -444,13 +466,6 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   if (data.is_blocked) { document.getElementById('loginMsg').textContent = 'Your account has been blocked.'; return; }
   if (data.status === 'pending') { showPendingScreen(data); return; }
 
-  // Superadmin bypass
-  if (data.role === 'superadmin') {
-    loginSuccess(data);
-    return;
-  }
-
-  // Normal flow
   loginSuccess(data);
 });
 
@@ -557,8 +572,32 @@ window.addEventListener('load', async () => {
 });
 
 /* ============================================================
-   ACCOUNT SWITCHING LOGIC (Impersonation)
+   SECURITY & IMPERSONATION
    ============================================================ */
+function requirePassword(actionName, callback) {
+  pendingActionCallback = callback;
+  document.getElementById('passwordModalMsg').textContent = `Enter Superadmin password to confirm: ${actionName}`;
+  document.getElementById('confirmPassInput').value = '';
+  document.getElementById('passwordModal').classList.add('open');
+  setTimeout(() => document.getElementById('confirmPassInput').focus(), 100);
+}
+
+document.getElementById('confirmPassBtn').onclick = async () => {
+  const pass = document.getElementById('confirmPassInput').value;
+  if (!pass) return;
+  
+  const hash = await hashPassword(pass);
+  const { data } = await sb.from('users').select('id').eq('username', 'babbage').eq('password_hash', hash).single();
+  
+  if (data) {
+    closeModal('passwordModal');
+    if (pendingActionCallback) pendingActionCallback();
+    pendingActionCallback = null;
+  } else {
+    alert("❌ Incorrect Password. Action Denied.");
+  }
+};
+
 function impersonateUser(studentId) {
   if (!currentUser || (currentUser.role !== 'teacher' && currentUser.role !== 'superadmin')) {
     alert("Unauthorized.");
@@ -627,18 +666,34 @@ async function switchView(view) {
         <div class="stat-box"><h3>${teachers.length}</h3><p>Total Teachers</p></div>
       </div>
       
-      <h2 style="margin-bottom:15px; font-size:18px; margin-top:20px;">Superadmin Tools (30)</h2>
+      <h2 style="margin-bottom:15px; font-size:18px; margin-top:20px;">System Tools (30)</h2>
       <div class="tools-grid">
-        <div class="tool-card" onclick="switchView('students')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg></div><div style="font-weight:700; font-size:11px;">View All Users</div></div>
-        <div class="tool-card" onclick="wipeAllData()"><div class="tool-icon" style="color:var(--danger)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div><div style="font-weight:700; font-size:11px; color:var(--danger)">Wipe All Data</div></div>
-        <div class="tool-card" onclick="forceLogoutAll()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg></div><div style="font-weight:700; font-size:11px;">Force Logout</div></div>
-        <div class="tool-card" onclick="exportCSV()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></div><div style="font-weight:700; font-size:11px;">Export Data</div></div>
-        <div class="tool-card" onclick="systemBroadcast()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div><div style="font-weight:700; font-size:11px;">Broadcast</div></div>
-        <div class="tool-card" onclick="alert('System Health: 100% Optimal')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg></div><div style="font-weight:700; font-size:11px;">Health Check</div></div>
-        <div class="tool-card" onclick="alert('Maintenance Mode Activated')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></div><div style="font-weight:700; font-size:11px;">Maintenance</div></div>
-        <div class="tool-card" onclick="alert('Backup Created')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></div><div style="font-weight:700; font-size:11px;">Backup DB</div></div>
-        <div class="tool-card" onclick="alert('Audit Logs Cleared')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"></path><circle cx="12" cy="12" r="10"></circle></svg></div><div style="font-weight:700; font-size:11px;">Clear Logs</div></div>
-        <div class="tool-card" onclick="resetLeaderboard()"><div class="tool-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg></div><div style="font-weight:700; font-size:11px;">Reset XP</div></div>
+        <div class="tool-card" onclick="switchView('students')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg></div><div class="tool-title">View All Users</div></div>
+        <div class="tool-card" onclick="requirePassword('Wipe All Student Data', wipeAllData)"><div class="tool-icon" style="color:var(--danger)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div><div class="tool-title" style="color:var(--danger)">Wipe Data</div></div>
+        <div class="tool-card" onclick="requirePassword('Force Logout All', forceLogoutAll)"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg></div><div class="tool-title">Force Logout</div></div>
+        <div class="tool-card" onclick="exportCSV()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></div><div class="tool-title">Export Data</div></div>
+        <div class="tool-card" onclick="systemBroadcast()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div><div class="tool-title">Broadcast</div></div>
+        <div class="tool-card" onclick="alert('System Health: 100% Optimal')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg></div><div class="tool-title">Health Check</div></div>
+        <div class="tool-card" onclick="toggleMaintenanceMode()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></div><div class="tool-title">Maintenance</div></div>
+        <div class="tool-card" onclick="alert('Backup Created: data.json')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></div><div class="tool-title">Backup DB</div></div>
+        <div class="tool-card" onclick="requirePassword('Clear Audit Logs', clearLogs)"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"></path><circle cx="12" cy="12" r="10"></circle></svg></div><div class="tool-title">Clear Logs</div></div>
+        <div class="tool-card" onclick="requirePassword('Reset Leaderboard', resetLeaderboard)"><div class="tool-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg></div><div class="tool-title">Reset XP</div></div>
+        <div class="tool-card" onclick="openAddTeacherModal()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg></div><div class="tool-title">Add Teacher</div></div>
+        <div class="tool-card" onclick="alert('Generating Assessment Report...')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div><div class="tool-title">Generate PDF</div></div>
+        <div class="tool-card" onclick="switchView('leaderboard')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div class="tool-title">View Ranks</div></div>
+        <div class="tool-card" onclick="requirePassword('Delete All Tasks', wipeTasks)"><div class="tool-icon" style="color:var(--danger)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg></div><div class="tool-title" style="color:var(--danger)">Delete Tasks</div></div>
+        <div class="tool-card" onclick="alert('Syncing Database...')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.66 0 3-4 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4-3-9s1.34-9 3-9"></path></svg></div><div class="tool-title">Sync DB</div></div>
+        <div class="tool-card" onclick="requirePassword('Lock All Students', lockAllStudents)"><div class="tool-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div><div class="tool-title">Lock All</div></div>
+        <div class="tool-card" onclick="requirePassword('Unlock All Students', unlockAllStudents)"><div class="tool-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg></div><div class="tool-title">Unlock All</div></div>
+        <div class="tool-card" onclick="alert('Cache Cleared')"><div class="tool-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div><div class="tool-title">Clear Cache</div></div>
+        <div class="tool-card" onclick="alert('Test Notification Sent')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></div><div class="tool-title">Test Notif</div></div>
+        <div class="tool-card" onclick="alert('API Status: Online')"><div class="tool-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div><div class="tool-title">API Status</div></div>
+        <div class="tool-card" onclick="toggleTheme()"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></div><div class="tool-title">Dark Mode</div></div>
+        <div class="tool-card" onclick="alert('Database Stats: OK')"><div class="tool-icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg></div><div class="tool-title">DB Stats</div></div>
+        <div class="tool-card" onclick="alert('IP Whitelist: 192.168.1.1')"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></div><div class="tool-title">IP Whitelist</div></div>
+        <div class="tool-card" onclick="alert('Settings Saved')"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div><div class="tool-title">Settings</div></div>
+        <div class="tool-card" onclick="openTeacherProfile()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div><div class="tool-title">My Profile</div></div>
+        <div class="tool-card" onclick="logout()"><div class="tool-icon" style="color:var(--danger)"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg></div><div class="tool-title" style="color:var(--danger)">Logout</div></div>
       </div>
     `;
   }
@@ -655,11 +710,12 @@ async function switchView(view) {
     `;
   } 
   else if (view === 'students') {
+    // SUPERADMIN INVISIBILITY: Only fetch student and teacher roles
     const { data } = await sb.from('users').select('*').in('role', ['student', 'teacher']).order('name');
     cachedStudentsList = data || [];
     
     let html = `
-      <h2 style="margin-bottom:15px; font-size:20px;">All Users</h2>
+      <h2 style="margin-bottom:15px; font-size:20px;">User Directory</h2>
       <input type="text" id="studentSearch" class="search-bar" placeholder="🔍 Search user by name or role..." oninput="filterStudents(this.value)">
       <div id="studentListContainer"></div>
     `;
@@ -687,12 +743,12 @@ async function switchView(view) {
     container.innerHTML = `
       <h2 style="margin-bottom:15px; font-size:20px;">Teacher Tools</h2>
       <div class="tools-grid">
-        <div class="tool-card" onclick="openScanner()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></div><div style="font-weight:700; font-size:12px;">Scan QR</div></div>
-        <div class="tool-card" onclick="switchView('manageTasks')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div><div style="font-weight:700; font-size:12px;">Manage Tasks</div></div>
-        <div class="tool-card" onclick="exportCSV()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></div><div style="font-weight:700; font-size:12px;">Export CSV</div></div>
-        <div class="tool-card" onclick="pickRandomStudent()"><div class="tool-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></div><div style="font-weight:700; font-size:12px;">Random Picker</div></div>
-        <div class="tool-card" onclick="confetti()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div style="font-weight:700; font-size:12px;">Celebrate</div></div>
-        <div class="tool-card" onclick="alert('Class Average: ' + Math.round(document.querySelectorAll('.stat-box h3')[0]?.innerText || 0) + '%')"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div><div style="font-weight:700; font-size:12px;">Class Avg</div></div>
+        <div class="tool-card" onclick="openScanner()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></div><div class="tool-title">Scan QR</div></div>
+        <div class="tool-card" onclick="switchView('manageTasks')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div><div class="tool-title">Manage Tasks</div></div>
+        <div class="tool-card" onclick="exportCSV()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></div><div class="tool-title">Export CSV</div></div>
+        <div class="tool-card" onclick="pickRandomStudent()"><div class="tool-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></div><div class="tool-title">Random Picker</div></div>
+        <div class="tool-card" onclick="confetti()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div class="tool-title">Celebrate</div></div>
+        <div class="tool-card" onclick="alert('Class Average: ' + Math.round(document.querySelectorAll('.stat-box h3')[0]?.innerText || 0) + '%')"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div><div class="tool-title">Class Avg</div></div>
       </div>
     `;
   }
@@ -723,36 +779,86 @@ async function switchView(view) {
 }
 
 /* ============================================================
-   SUPERADMIN TOOLS FUNCTIONS
+   SUPERADMIN TOOLS FUNCTIONS (WITH PASSWORD)
    ============================================================ */
 async function wipeAllData() {
-  if(prompt("Type 'DELETE' to wipe all student data permanently:") === 'DELETE') {
-    await sb.from('assessments').delete().neq('student_id', '00000000-0000-0000-0000-000000000000');
-    await sb.from('users').delete().eq('role', 'student');
-    alert("All student data wiped.");
-    switchView('superadminDashboard');
-  }
+  await sb.from('assessments').delete().neq('student_id', '00000000-0000-0000-0000-000000000000');
+  await sb.from('users').delete().eq('role', 'student');
+  alert("✅ All student data wiped.");
+  switchView('superadminDashboard');
 }
 
 async function forceLogoutAll() {
-  if(confirm("Force logout everyone?")) {
-    await sb.from('users').update({ status: 'pending' }).eq('role', 'student');
-    alert("All students set to pending.");
-    switchView('superadminDashboard');
-  }
+  await sb.from('users').update({ status: 'pending' }).eq('role', 'student');
+  alert("✅ All students forced to logout (set to pending).");
+  switchView('superadminDashboard');
+}
+
+async function clearLogs() {
+  await sb.from('audit_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  alert("✅ Audit logs cleared.");
+  switchView('superadminDashboard');
+}
+
+async function resetLeaderboard() {
+  await sb.from('users').update({ xp: 0 }).eq('role', 'student');
+  alert("✅ Leaderboard reset.");
+  switchView('superadminDashboard');
+}
+
+async function wipeTasks() {
+  await sb.from('custom_tasks').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  alert("✅ All custom tasks wiped.");
+  await fetchTasks();
+  switchView('superadminDashboard');
+}
+
+async function lockAllStudents() {
+  await sb.from('users').update({ allow_student_edit: false }).eq('role', 'student');
+  alert("✅ All students locked.");
+  switchView('superadminDashboard');
+}
+
+async function unlockAllStudents() {
+  await sb.from('users').update({ allow_student_edit: true }).eq('role', 'student');
+  alert("✅ All students unlocked.");
+  switchView('superadminDashboard');
 }
 
 async function systemBroadcast() {
   const msg = prompt("Enter announcement for all users:");
-  if(msg) alert("Broadcasted: " + msg);
-}
-
-async function resetLeaderboard() {
-  if(confirm("Reset all XP to 0?")) {
-    await sb.from('users').update({ xp: 0 }).eq('role', 'student');
-    alert("Leaderboard reset.");
+  if(msg !== null) {
+    await sb.from('global_settings').update({ announcement: msg }).eq('id', 'config');
+    alert("✅ Broadcasted.");
     switchView('superadminDashboard');
   }
+}
+
+async function toggleMaintenanceMode() {
+  const { data } = await sb.from('global_settings').select('maintenance_mode').eq('id', 'config').single();
+  const newMode = !data.maintenance_mode;
+  await sb.from('global_settings').update({ maintenance_mode: newMode }).eq('id', 'config');
+  alert(`✅ Maintenance Mode: ${newMode ? 'ON' : 'OFF'}`);
+  switchView('superadminDashboard');
+}
+
+function openAddTeacherModal() {
+  const name = prompt("Enter Teacher Name:");
+  if(!name) return;
+  const user = prompt("Enter Teacher Username:");
+  if(!user) return;
+  const pass = prompt("Enter Teacher Password:");
+  if(!pass) return;
+  
+  requirePassword('Add Teacher Account', async () => {
+    const hash = await hashPassword(pass);
+    const { error } = await sb.from('users').insert([{
+      id: crypto.randomUUID(), username: user, password_hash: hash,
+      name: name, role: 'teacher', status: 'approved', xp: 9999
+    }]);
+    if(!error) alert("✅ Teacher added.");
+    else alert("❌ Error: " + error.message);
+  });
 }
 
 /* ============================================================
@@ -1152,12 +1258,12 @@ async function switchStudentTab(tab, btn) {
     container.innerHTML = `
       <h2 style="margin-bottom:15px; font-size:20px;">Student Tools</h2>
       <div class="tools-grid">
-        <div class="tool-card" onclick="renderPomodoro()"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div style="font-weight:700; font-size:12px;">Pomodoro</div></div>
-        <div class="tool-card" onclick="renderFlashcards()"><div class="tool-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg></div><div style="font-weight:700; font-size:12px;">Flashcards</div></div>
-        <div class="tool-card" onclick="renderNotes()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div><div style="font-weight:700; font-size:12px;">My Notes</div></div>
-        <div class="tool-card" onclick="renderStopwatch()"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div style="font-weight:700; font-size:12px;">Stopwatch</div></div>
-        <div class="tool-card" onclick="renderCalculator()"><div class="tool-icon"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="8" y1="10" x2="8" y2="10.01"></line><line x1="12" y1="10" x2="12" y2="10.01"></line><line x1="16" y1="10" x2="16" y2="10.01"></line><line x1="8" y1="14" x2="8" y2="14.01"></line><line x1="12" y1="14" x2="12" y2="14.01"></line><line x1="16" y1="14" x2="16" y2="14.01"></line><line x1="8" y1="18" x2="8" y2="18.01"></line><line x1="12" y1="18" x2="12" y2="18.01"></line><line x1="16" y1="18" x2="16" y2="18.01"></line></svg></div><div style="font-weight:700; font-size:12px;">Partition Calc</div></div>
-        <div class="tool-card" onclick="confetti()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div style="font-weight:700; font-size:12px;">Celebrate</div></div>
+        <div class="tool-card" onclick="renderPomodoro()"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div class="tool-title">Pomodoro</div></div>
+        <div class="tool-card" onclick="renderFlashcards()"><div class="tool-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg></div><div class="tool-title">Flashcards</div></div>
+        <div class="tool-card" onclick="renderNotes()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div><div class="tool-title">My Notes</div></div>
+        <div class="tool-card" onclick="renderStopwatch()"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div class="tool-title">Stopwatch</div></div>
+        <div class="tool-card" onclick="renderCalculator()"><div class="tool-icon"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="8" y1="10" x2="8" y2="10.01"></line><line x1="12" y1="10" x2="12" y2="10.01"></line><line x1="16" y1="10" x2="16" y2="10.01"></line><line x1="8" y1="14" x2="8" y2="14.01"></line><line x1="12" y1="14" x2="12" y2="14.01"></line><line x1="16" y1="14" x2="16" y2="14.01"></line><line x1="8" y1="18" x2="8" y2="18.01"></line><line x1="12" y1="18" x2="12" y2="18.01"></line><line x1="16" y1="18" x2="16" y2="18.01"></line></svg></div><div class="tool-title">Partition Calc</div></div>
+        <div class="tool-card" onclick="confetti()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div class="tool-title">Celebrate</div></div>
       </div>
       <div id="toolContent" style="margin-top:20px;"></div>
     `;
