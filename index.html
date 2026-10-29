@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0f172a">
-<title>CSS NC II - Assessment Portal v4.3</title>
+<title>CSS NC II - Assessment Portal v5.1</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -191,7 +191,7 @@ input, textarea { font-family: inherit; font-size: 14px; }
     <div id="registerLink" class="hidden" style="text-align:center; margin-top:15px; font-size:13px;">
       New student? <a href="#" onclick="showRegister(event)" style="color:var(--primary); font-weight:700; text-decoration:none;">Create Account</a>
     </div>
-    <div style="text-align:center; margin-top:20px; font-size:11px; color:var(--text-muted); font-weight:500;">Version 4.3</div>
+    <div style="text-align:center; margin-top:20px; font-size:11px; color:var(--text-muted); font-weight:500;">Version 5.1</div>
   </div>
 </div>
 
@@ -260,8 +260,8 @@ input, textarea { font-family: inherit; font-size: 14px; }
 
   <main class="content" id="mainContent"></main>
 
-  <!-- FLOATING REFRESH BUTTON -->
-  <button class="fab-refresh" onclick="refreshApp()" title="Refresh App">
+  <!-- FLOATING REFRESH BUTTON (SMART SOFT REFRESH) -->
+  <button class="fab-refresh" id="refreshBtn" onclick="refreshApp()" title="Refresh Data">
     <svg viewBox="0 0 24 24"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
   </button>
 
@@ -722,7 +722,7 @@ async function exportCSV() {
   const { data: students } = await sb.from('users').select('*').eq('role', 'student');
   const { data: assessments } = await sb.from('assessments').select('*');
   
-  let csv = "Student Name,Section,XP,Status";
+  let csv = "Student Name,Section,XP,Status,Time Finished";
   dynamicTasks.forEach(t => {
     t.items.forEach(item => { csv += `,"${item}"`; });
   });
@@ -730,7 +730,7 @@ async function exportCSV() {
 
   students.forEach(s => {
     const a = assessments.find(x => x.student_id === s.id) || { answers: {} };
-    let row = `"${s.name}","${s.section||''}",${s.xp||0},"${s.status}"`;
+    let row = `"${s.name}","${s.section||''}",${s.xp||0},"${s.status}","${s.completed_at ? new Date(s.completed_at).toLocaleString() : 'N/A'}"`;
     dynamicTasks.forEach(t => {
       t.items.forEach(item => { row += `,"${a.answers[item] || ''}"`; });
     });
@@ -765,7 +765,7 @@ async function viewStudentDetail(studentId) {
     <div class="card" style="text-align:center;">
       <div class="avatar" style="width:80px; height:80px; font-size:32px; margin:0 auto 15px;">${student.profile_picture ? `<img src="${student.profile_picture}">` : (student.name||'U').charAt(0)}</div>
       <h2 style="font-size:20px;">${student.name}</h2>
-      <p style="color:var(--text-muted); margin-bottom:15px;">${student.section || 'No Section'} • XP: ${student.xp||0}</p>
+      <p style="color:var(--text-muted); margin-bottom:15px;">${student.section || 'No Section'} • XP: ${student.xp||0} ${student.completed_at ? `<br><span style="color:var(--success)">✅ Finished on ${new Date(student.completed_at).toLocaleString()}</span>` : ''}</p>
       
       <div style="display:flex; gap:10px; justify-content:center; margin-bottom:15px;">
         <button class="btn" onclick="viewStudentAssessment('${student.id}', '${student.name.replace(/'/g, "\\'")}')" style="flex:1;">Grade Tasks</button>
@@ -936,15 +936,28 @@ async function recalculateStudent(studentId) {
   let answers = assessment?.answers || {};
   
   let yesCount = 0;
+  let totalItems = 0;
   // Only count YES if the task still exists in dynamicTasks
   dynamicTasks.forEach(t => {
     t.items.forEach(item => {
+      totalItems++;
       if (answers[item] === 'yes') yesCount++;
     });
   });
 
   const newXp = yesCount * 10;
-  await sb.from('users').update({ xp: newXp }).eq('id', studentId);
+  const isComplete = (yesCount === totalItems && totalItems > 0);
+
+  const { data: user } = await sb.from('users').select('completed_at').eq('id', studentId).single();
+  let completedAt = user.completed_at;
+
+  if (isComplete && !completedAt) {
+    completedAt = new Date().toISOString();
+  } else if (!isComplete && completedAt) {
+    completedAt = null; // Reset if a new task was added or a check was removed
+  }
+
+  await sb.from('users').update({ xp: newXp, completed_at: completedAt }).eq('id', studentId);
 }
 
 async function switchStudentTab(tab, btn) {
@@ -967,7 +980,6 @@ async function switchStudentTab(tab, btn) {
     currentAssessment = a || { answers: {} };
     let answers = currentAssessment.answers || {};
 
-    // Dynamic calculation: If teacher adds a task, totalItems increases, progress drops.
     dynamicTasks.forEach(t => {
       t.items.forEach(item => {
         totalItems++;
@@ -983,15 +995,36 @@ async function switchStudentTab(tab, btn) {
     const circumference = 2 * Math.PI * 45; 
     const strokeDashoffset = circumference - (progress / 100) * circumference;
 
-    // Auto-show certificate logic
+    // Determine if student is in Top 3
+    let rank = null;
+    if (isComplete) {
+      const { data: topStudents } = await sb.from('users').select('id, completed_at, xp').eq('role', 'student').not('completed_at', 'is', null).order('xp', { ascending: false }).order('completed_at', { ascending: true }).limit(3);
+      if (topStudents) {
+        const studentIndex = topStudents.findIndex(s => s.id === currentUser.id);
+        if (studentIndex !== -1) {
+          rank = studentIndex + 1;
+        }
+      }
+    }
+
     if (isComplete) {
       if (!sessionStorage.getItem('cert_shown')) {
         sessionStorage.setItem('cert_shown', 'true');
-        openCertificate();
+        openCertificate(rank);
       }
     } else {
-      // If they drop below 100% (e.g., teacher added a new task), reset the flag so it shows again when they finish
       sessionStorage.removeItem('cert_shown');
+    }
+
+    let buttonHtml = '';
+    if (isComplete) {
+      if (rank) {
+        buttonHtml = `<button class="btn btn-success" style="background: linear-gradient(135deg, #fbbf24, #d97706); color: #0f172a; font-weight:800; font-size:16px;" onclick="openCertificate(${rank})">🏆 Claim Top ${rank} Certificate</button>`;
+      } else {
+        buttonHtml = `<button class="btn btn-success" onclick="openCertificate()">🏆 View Completion Certificate</button>`;
+      }
+    } else {
+      buttonHtml = `<button class="btn" onclick="switchStudentTab('tasks', document.getElementById('nav-tasks'))">Continue Tasks</button>`;
     }
 
     container.innerHTML = `
@@ -1018,11 +1051,7 @@ async function switchStudentTab(tab, btn) {
           <div class="stat-box"><h3>${progress}%</h3><p>Done</p></div>
         </div>
         
-        ${isComplete ? `
-          <button class="btn btn-success" onclick="openCertificate()">🏆 View Certificate</button>
-        ` : `
-          <button class="btn" onclick="switchStudentTab('tasks', document.getElementById('nav-tasks'))">Continue Tasks</button>
-        `}
+        ${buttonHtml}
       </div>
     `;
   } 
@@ -1306,14 +1335,14 @@ function saveNotes() {
 }
 
 /* ============================================================
-   INSTAGRAMMABLE CERTIFICATE GENERATOR
+   TOP RANK & COMPLETION CERTIFICATE GENERATOR
    ============================================================ */
-function openCertificate() {
+function openCertificate(rank = null) {
   document.getElementById('certModal').classList.add('open');
-  drawCertificate();
+  drawCertificate(rank);
 }
 
-function drawCertificate() {
+function drawCertificate(rank = null) {
   const canvas = document.getElementById('certCanvas');
   const ctx = canvas.getContext('2d');
   
@@ -1351,61 +1380,72 @@ function drawCertificate() {
   ctx.fillStyle = '#fbbf24';
   ctx.font = "bold 16px sans-serif";
   ctx.letterSpacing = "4px";
-  ctx.fillText("CERTIFICATE OF ACHIEVEMENT", 400, 120);
+  ctx.fillText(rank ? "CERTIFICATE OF EXCELLENCE" : "CERTIFICATE OF ACHIEVEMENT", 400, 120);
   
+  // Top Rank Glowing Text (If Applicable)
+  if (rank) {
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = "900 40px sans-serif";
+    ctx.fillText(`TOP ${rank} ACHIEVER`, 400, 175);
+  }
+
   // Subtitle
   ctx.fillStyle = '#cbd5e1';
   ctx.font = "14px sans-serif";
   ctx.letterSpacing = "0px";
-  ctx.fillText("This is proudly presented to", 400, 180);
+  ctx.fillText("This is proudly presented to", 400, rank ? 220 : 180);
   
   // Name (The Star of the Show)
   ctx.fillStyle = '#ffffff';
   ctx.font = "bold 48px serif";
-  ctx.fillText(currentUser.name.toUpperCase(), 400, 250);
+  ctx.fillText(currentUser.name.toUpperCase(), 400, rank ? 280 : 250);
   
   // Gold Divider Line
   ctx.strokeStyle = 'rgba(251, 191, 36, 0.5)';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(250, 280);
-  ctx.lineTo(550, 280);
+  ctx.moveTo(250, rank ? 310 : 280);
+  ctx.lineTo(550, rank ? 310 : 280);
   ctx.stroke();
   
   // Body
   ctx.fillStyle = '#cbd5e1';
   ctx.font = "16px sans-serif";
-  ctx.fillText("for successfully completing the requirements for", 400, 330);
+  ctx.fillText("for successfully completing the requirements for", 400, rank ? 350 : 330);
   
   ctx.fillStyle = '#fbbf24';
   ctx.font = "bold 22px sans-serif";
-  ctx.fillText("Computer Systems Servicing NC II", 400, 370);
+  ctx.fillText("Computer Systems Servicing NC II", 400, rank ? 390 : 370);
   
   ctx.fillStyle = '#cbd5e1';
   ctx.font = "14px sans-serif";
-  ctx.fillText("Unit Code 1: Install and configure of computer systems", 400, 405);
+  ctx.fillText("Unit Code 1: Install and configure of computer systems", 400, rank ? 425 : 405);
   
-  // Date
+  // Date & Score Info
   ctx.fillStyle = '#94a3b8';
   ctx.font = "12px sans-serif";
   const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  ctx.fillText(`Issued on ${dateStr}`, 400, 450);
+  if (rank) {
+    ctx.fillText(`Issued on ${dateStr} | Highest Score & Fastest Completion`, 400, 465);
+  } else {
+    ctx.fillText(`Issued on ${dateStr}`, 400, 450);
+  }
   
   // Signature
   ctx.strokeStyle = '#cbd5e1';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(300, 500);
-  ctx.lineTo(500, 500);
+  ctx.moveTo(300, rank ? 510 : 500);
+  ctx.lineTo(500, rank ? 510 : 500);
   ctx.stroke();
   
   ctx.fillStyle = '#ffffff';
   ctx.font = "bold 18px sans-serif";
-  ctx.fillText("Jayson Emnace", 400, 525);
+  ctx.fillText("Jayson Emnace", 400, rank ? 535 : 525);
   
   ctx.fillStyle = '#94a3b8';
   ctx.font = "12px sans-serif";
-  ctx.fillText("Trainer", 400, 545);
+  ctx.fillText("Trainer", 400, rank ? 555 : 545);
 }
 
 function downloadCertificate() {
@@ -1509,10 +1549,66 @@ async function saveCroppedImage() {
 }
 
 /* ============================================================
-   UTILS & REFRESH
+   SMART SOFT REFRESH LOGIC
    ============================================================ */
-function refreshApp() {
-  window.location.reload();
+async function refreshApp() {
+  if (!currentUser) {
+    window.location.reload();
+    return;
+  }
+
+  const btn = document.getElementById('refreshBtn');
+  const originalContent = btn.innerHTML;
+  
+  // 1. Show spinning loader on the button
+  btn.innerHTML = '<div class="spinner" style="width:20px; height:20px; border-width:2px;"></div>';
+  btn.style.pointerEvents = 'none';
+
+  try {
+    // 2. Re-fetch latest user data (blocks, name changes, XP)
+    const { data: user } = await sb.from('users').select('*').eq('id', currentUser.id).single();
+    
+    if (!user || user.is_blocked) {
+      logout('Your account has been blocked or removed.');
+      return;
+    }
+    
+    currentUser = user;
+    localStorage.setItem('css_session', JSON.stringify(user));
+    
+    // Update header UI
+    document.getElementById('userNameDisplay').textContent = user.name || user.username;
+    if(user.profile_picture) { document.getElementById('userAvatar').innerHTML = `<img src="${user.profile_picture}">`; } 
+    else { document.getElementById('userAvatar').textContent = (user.name || user.username).charAt(0).toUpperCase(); }
+
+    // 3. Re-fetch latest tasks
+    await fetchTasks();
+
+    // 4. Re-render the exact view the user is currently on
+    if (currentUser.role === 'teacher') {
+      const savedView = sessionStorage.getItem('css_teacher_view') || 'dashboard';
+      const savedStudentId = sessionStorage.getItem('css_teacher_student_id');
+
+      if (savedView === 'student_detail' && savedStudentId) {
+        await viewStudentDetail(savedStudentId);
+      } else if (savedView === 'student_assessment' && savedStudentId) {
+        await viewStudentAssessment(savedStudentId); 
+      } else {
+        await switchView(savedView);
+      }
+    } else {
+      const savedTab = sessionStorage.getItem('css_active_tab') || 'home';
+      await switchStudentTab(savedTab, document.getElementById('nav-'+savedTab));
+    }
+    
+  } catch (err) {
+    console.error("Refresh failed:", err);
+    alert("Failed to refresh data. Please check your connection.");
+  } finally {
+    // 5. Restore the button
+    btn.innerHTML = originalContent;
+    btn.style.pointerEvents = 'auto';
+  }
 }
 
 function toggleTheme() { document.body.classList.toggle('dark'); }
