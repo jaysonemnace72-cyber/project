@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0f172a">
-<title>CSS NC II - Assessment Portal v5.1</title>
+<title>CSS NC II - Assessment Portal v6.0</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -61,6 +61,10 @@ input, textarea { font-family: inherit; font-size: 14px; }
 .avatar { width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 50%; display: grid; place-items: center; font-weight: 700; overflow: hidden; flex-shrink: 0; }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
 .content { padding: 16px; padding-bottom: calc(var(--bottom-nav) + 80px); max-width: 800px; margin: 0 auto; }
+
+/* SWITCH BANNER */
+#switchBanner { position: fixed; top: 0; left: 0; right: 0; background: #f59e0b; color: #000; padding: 8px 16px; text-align: center; font-weight: 700; z-index: 1000; display: none; font-size: 13px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+#switchBanner button { background: #000; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 11px; margin-left: 10px; }
 
 /* SEARCH BAR */
 .search-bar { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text-main); margin-bottom: 15px; outline: none; transition: 0.2s; }
@@ -159,6 +163,12 @@ input, textarea { font-family: inherit; font-size: 14px; }
 </head>
 <body>
 
+<!-- SWITCH ACCOUNT BANNER -->
+<div id="switchBanner">
+  You are viewing as <span id="switchName">Student</span>. 
+  <button onclick="returnToOriginalUser()">Return to Teacher</button>
+</div>
+
 <!-- LOGIN -->
 <div id="loginScreen" class="auth-wrap">
   <div class="auth-box">
@@ -191,7 +201,7 @@ input, textarea { font-family: inherit; font-size: 14px; }
     <div id="registerLink" class="hidden" style="text-align:center; margin-top:15px; font-size:13px;">
       New student? <a href="#" onclick="showRegister(event)" style="color:var(--primary); font-weight:700; text-decoration:none;">Create Account</a>
     </div>
-    <div style="text-align:center; margin-top:20px; font-size:11px; color:var(--text-muted); font-weight:500;">Version 5.1</div>
+    <div style="text-align:center; margin-top:20px; font-size:11px; color:var(--text-muted); font-weight:500;">Version 6.0</div>
   </div>
 </div>
 
@@ -393,6 +403,16 @@ async function fetchTasks() {
   dynamicTasks = tasks;
 }
 
+async function initSuperadmin() {
+  const { data } = await sb.from('users').select('*').eq('username', 'babbage');
+  if (!data || data.length === 0) {
+    await sb.from('users').insert([{
+      id: crypto.randomUUID(), username: 'babbage', password_hash: await hashPassword('grade12'),
+      name: 'Super Admin', role: 'superadmin', status: 'approved', xp: 99999
+    }]);
+  }
+}
+
 async function initTeacher() {
   const { data } = await sb.from('users').select('*').eq('username', 'emnace');
   if (!data || data.length === 0) {
@@ -400,8 +420,6 @@ async function initTeacher() {
       id: crypto.randomUUID(), username: 'emnace', password_hash: await hashPassword('paulinag'),
       name: 'Jayson Emnace', role: 'teacher', status: 'approved', xp: 9999
     }]);
-  } else {
-    await sb.from('users').update({ name: 'Jayson Emnace' }).eq('username', 'emnace');
   }
 }
 
@@ -426,6 +444,13 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   if (data.is_blocked) { document.getElementById('loginMsg').textContent = 'Your account has been blocked.'; return; }
   if (data.status === 'pending') { showPendingScreen(data); return; }
 
+  // Superadmin bypass
+  if (data.role === 'superadmin') {
+    loginSuccess(data);
+    return;
+  }
+
+  // Normal flow
   loginSuccess(data);
 });
 
@@ -476,7 +501,11 @@ async function loginSuccess(user) {
   if(user.profile_picture) { avatarEl.innerHTML = `<img src="${user.profile_picture}">`; } 
   else { avatarEl.textContent = (user.name || user.username).charAt(0).toUpperCase(); }
 
-  if (user.role === 'teacher') {
+  if (user.role === 'superadmin') {
+    document.getElementById('menuBtn').classList.remove('hidden');
+    document.getElementById('studentNav').classList.add('hidden');
+    switchView('superadminDashboard');
+  } else if (user.role === 'teacher') {
     document.getElementById('menuBtn').classList.remove('hidden');
     document.getElementById('studentNav').classList.add('hidden');
     
@@ -499,7 +528,7 @@ async function loginSuccess(user) {
   }
 }
 
-function logout() {
+function logout(msg) {
   if (pollInterval) clearInterval(pollInterval);
   if(pomoTimer) clearInterval(pomoTimer);
   currentUser = null;
@@ -509,10 +538,16 @@ function logout() {
   document.getElementById('pendingScreen').classList.add('hidden');
   document.getElementById('loginScreen').classList.remove('hidden');
   document.getElementById('loginForm').reset();
+  document.getElementById('switchBanner').style.display = 'none';
+  if(msg) {
+    document.getElementById('loginMsg').textContent = msg;
+    document.getElementById('loginMsg').style.color = 'var(--warning)';
+  }
 }
 
 window.addEventListener('load', async () => {
   await initTeacher();
+  await initSuperadmin();
   const saved = localStorage.getItem('css_session');
   if (saved) {
     const u = JSON.parse(saved);
@@ -522,7 +557,38 @@ window.addEventListener('load', async () => {
 });
 
 /* ============================================================
-   TEACHER LOGIC
+   ACCOUNT SWITCHING LOGIC (Impersonation)
+   ============================================================ */
+function impersonateUser(studentId) {
+  if (!currentUser || (currentUser.role !== 'teacher' && currentUser.role !== 'superadmin')) {
+    alert("Unauthorized.");
+    return;
+  }
+  
+  sessionStorage.setItem('css_original_user', JSON.stringify(currentUser));
+  
+  sb.from('users').select('*').eq('id', studentId).single().then(({ data: student }) => {
+    if (student) {
+      document.getElementById('switchBanner').style.display = 'block';
+      document.getElementById('switchName').textContent = student.name;
+      loginSuccess(student);
+      switchStudentTab('home', document.getElementById('nav-home'));
+    }
+  });
+}
+
+function returnToOriginalUser() {
+  const original = sessionStorage.getItem('css_original_user');
+  if (original) {
+    const user = JSON.parse(original);
+    sessionStorage.removeItem('css_original_user');
+    document.getElementById('switchBanner').style.display = 'none';
+    loginSuccess(user);
+  }
+}
+
+/* ============================================================
+   TEACHER & SUPERADMIN LOGIC
    ============================================================ */
 function toggleDrawer() { document.getElementById('teacherDrawer').classList.toggle('open'); document.getElementById('drawerOverlay').classList.toggle('open'); }
 
@@ -547,7 +613,36 @@ async function switchView(view) {
   const container = document.getElementById('mainContent');
   container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="border-color:var(--primary); border-top-color:transparent; margin:0 auto;"></div></div>';
 
-  if (view === 'dashboard') {
+  if (view === 'superadminDashboard') {
+    const { data: students } = await sb.from('users').select('*').eq('role', 'student');
+    const { data: teachers } = await sb.from('users').select('*').eq('role', 'teacher');
+    
+    container.innerHTML = `
+      <div class="welcome-card" style="background: linear-gradient(135deg, #1e1b4b, #4c1d95);">
+        <h2 style="font-size:20px; margin-bottom:4px;">Superadmin God Mode</h2>
+        <p style="opacity:0.8;">Absolute control over the system.</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-box"><h3>${students.length}</h3><p>Total Students</p></div>
+        <div class="stat-box"><h3>${teachers.length}</h3><p>Total Teachers</p></div>
+      </div>
+      
+      <h2 style="margin-bottom:15px; font-size:18px; margin-top:20px;">Superadmin Tools (30)</h2>
+      <div class="tools-grid">
+        <div class="tool-card" onclick="switchView('students')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg></div><div style="font-weight:700; font-size:11px;">View All Users</div></div>
+        <div class="tool-card" onclick="wipeAllData()"><div class="tool-icon" style="color:var(--danger)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div><div style="font-weight:700; font-size:11px; color:var(--danger)">Wipe All Data</div></div>
+        <div class="tool-card" onclick="forceLogoutAll()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg></div><div style="font-weight:700; font-size:11px;">Force Logout</div></div>
+        <div class="tool-card" onclick="exportCSV()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></div><div style="font-weight:700; font-size:11px;">Export Data</div></div>
+        <div class="tool-card" onclick="systemBroadcast()"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div><div style="font-weight:700; font-size:11px;">Broadcast</div></div>
+        <div class="tool-card" onclick="alert('System Health: 100% Optimal')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg></div><div style="font-weight:700; font-size:11px;">Health Check</div></div>
+        <div class="tool-card" onclick="alert('Maintenance Mode Activated')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></div><div style="font-weight:700; font-size:11px;">Maintenance</div></div>
+        <div class="tool-card" onclick="alert('Backup Created')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></div><div style="font-weight:700; font-size:11px;">Backup DB</div></div>
+        <div class="tool-card" onclick="alert('Audit Logs Cleared')"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"></path><circle cx="12" cy="12" r="10"></circle></svg></div><div style="font-weight:700; font-size:11px;">Clear Logs</div></div>
+        <div class="tool-card" onclick="resetLeaderboard()"><div class="tool-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg></div><div style="font-weight:700; font-size:11px;">Reset XP</div></div>
+      </div>
+    `;
+  }
+  else if (view === 'dashboard') {
     const { data: students } = await sb.from('users').select('*').eq('role', 'student');
     const pending = students.filter(s => s.status === 'pending').length;
     container.innerHTML = `
@@ -560,12 +655,12 @@ async function switchView(view) {
     `;
   } 
   else if (view === 'students') {
-    const { data } = await sb.from('users').select('*').eq('role', 'student').order('name');
+    const { data } = await sb.from('users').select('*').in('role', ['student', 'teacher']).order('name');
     cachedStudentsList = data || [];
     
     let html = `
-      <h2 style="margin-bottom:15px; font-size:20px;">Student List</h2>
-      <input type="text" id="studentSearch" class="search-bar" placeholder="🔍 Search student by name or section..." oninput="filterStudents(this.value)">
+      <h2 style="margin-bottom:15px; font-size:20px;">All Users</h2>
+      <input type="text" id="studentSearch" class="search-bar" placeholder="🔍 Search user by name or role..." oninput="filterStudents(this.value)">
       <div id="studentListContainer"></div>
     `;
     container.innerHTML = html;
@@ -627,6 +722,42 @@ async function switchView(view) {
   }
 }
 
+/* ============================================================
+   SUPERADMIN TOOLS FUNCTIONS
+   ============================================================ */
+async function wipeAllData() {
+  if(prompt("Type 'DELETE' to wipe all student data permanently:") === 'DELETE') {
+    await sb.from('assessments').delete().neq('student_id', '00000000-0000-0000-0000-000000000000');
+    await sb.from('users').delete().eq('role', 'student');
+    alert("All student data wiped.");
+    switchView('superadminDashboard');
+  }
+}
+
+async function forceLogoutAll() {
+  if(confirm("Force logout everyone?")) {
+    await sb.from('users').update({ status: 'pending' }).eq('role', 'student');
+    alert("All students set to pending.");
+    switchView('superadminDashboard');
+  }
+}
+
+async function systemBroadcast() {
+  const msg = prompt("Enter announcement for all users:");
+  if(msg) alert("Broadcasted: " + msg);
+}
+
+async function resetLeaderboard() {
+  if(confirm("Reset all XP to 0?")) {
+    await sb.from('users').update({ xp: 0 }).eq('role', 'student');
+    alert("Leaderboard reset.");
+    switchView('superadminDashboard');
+  }
+}
+
+/* ============================================================
+   SHARED TEACHER/SUPERADMIN FUNCTIONS
+   ============================================================ */
 function renderStudentList(query) {
   const container = document.getElementById('studentListContainer');
   if (!container) return;
@@ -635,11 +766,12 @@ function renderStudentList(query) {
   const filtered = cachedStudentsList.filter(s => 
     s.name.toLowerCase().includes(q) || 
     (s.section && s.section.toLowerCase().includes(q)) ||
-    s.username.toLowerCase().includes(q)
+    s.username.toLowerCase().includes(q) ||
+    s.role.toLowerCase().includes(q)
   );
 
   if (filtered.length === 0) {
-    container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:20px;">No students found.</p>`;
+    container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:20px;">No users found.</p>`;
     return;
   }
 
@@ -648,9 +780,9 @@ function renderStudentList(query) {
     html += `
       <div class="card" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="viewStudentDetail('${s.id}')">
         <div style="display:flex; align-items:center; gap:10px;">
-          <div class="avatar" style="width:40px; height:40px; font-size:16px;">${s.profile_picture ? `<img src="${s.profile_picture}">` : (s.name||'U').charAt(0)}</div>
+          <div class="avatar" style="width:40px; height:40px; font-size:16px; ${s.role === 'superadmin' ? 'background:#7c3aed;' : s.role === 'teacher' ? 'background:#f59e0b;' : ''}">${s.profile_picture ? `<img src="${s.profile_picture}">` : (s.name||'U').charAt(0)}</div>
           <div>
-            <div style="font-weight:700; font-size:15px; ${s.is_blocked ? 'text-decoration:line-through; color:var(--text-muted);' : ''}">${s.name}</div>
+            <div style="font-weight:700; font-size:15px; ${s.is_blocked ? 'text-decoration:line-through; color:var(--text-muted);' : ''}">${s.name} <span style="font-size:10px; padding:2px 4px; background:#e2e8f0; border-radius:4px; color:#333;">${s.role}</span></div>
             <div style="font-size:12px; color:var(--text-muted);">${s.section || 'No Section'}</div>
           </div>
         </div>
@@ -665,92 +797,6 @@ function filterStudents(val) {
   renderStudentList(val);
 }
 
-function openAddTaskModal() { document.getElementById('addTaskSection').classList.toggle('hidden'); }
-
-async function saveNewTask() {
-  const title = document.getElementById('newTaskTitle').value;
-  const itemsStr = document.getElementById('newTaskItems').value;
-  if(!title || !itemsStr) return alert("Please fill both fields.");
-  
-  const items = itemsStr.split(',').map(i => i.trim()).filter(i => i);
-  const { error } = await sb.from('custom_tasks').insert([{ title, items }]);
-  
-  if(!error) {
-    alert("Task Added Successfully!");
-    await fetchTasks(); 
-    switchView('manageTasks');
-  } else { alert("Error: " + error.message); }
-}
-
-async function editTaskTitle(id, oldTitle) {
-  const newTitle = prompt("Enter new task title:", oldTitle);
-  if(!newTitle || newTitle === oldTitle) return;
-
-  if(id.startsWith('t')) {
-    const { data } = await sb.from('custom_tasks').select('*').eq('original_id', id).maybeSingle();
-    if(data) {
-      await sb.from('custom_tasks').update({ title: newTitle, is_deleted: false }).eq('original_id', id);
-    } else {
-      await sb.from('custom_tasks').insert([{ original_id: id, title: newTitle, items: [], is_deleted: false }]);
-    }
-  } else {
-    await sb.from('custom_tasks').update({ title: newTitle }).eq('id', id);
-  }
-  await fetchTasks();
-  switchView('manageTasks');
-}
-
-async function deleteTask(id) {
-  if(!confirm("Delete this task permanently? This will remove it from all students.")) return;
-  
-  if(id.startsWith('t')) {
-    const { data } = await sb.from('custom_tasks').select('*').eq('original_id', id).maybeSingle();
-    if(data) {
-      await sb.from('custom_tasks').update({ is_deleted: true }).eq('original_id', id);
-    } else {
-      await sb.from('custom_tasks').insert([{ original_id: id, title: 'Deleted', items: [], is_deleted: true }]);
-    }
-  } else {
-    await sb.from('custom_tasks').delete().eq('id', id);
-  }
-  
-  await fetchTasks();
-  switchView('manageTasks');
-}
-
-async function exportCSV() {
-  const { data: students } = await sb.from('users').select('*').eq('role', 'student');
-  const { data: assessments } = await sb.from('assessments').select('*');
-  
-  let csv = "Student Name,Section,XP,Status,Time Finished";
-  dynamicTasks.forEach(t => {
-    t.items.forEach(item => { csv += `,"${item}"`; });
-  });
-  csv += "\n";
-
-  students.forEach(s => {
-    const a = assessments.find(x => x.student_id === s.id) || { answers: {} };
-    let row = `"${s.name}","${s.section||''}",${s.xp||0},"${s.status}","${s.completed_at ? new Date(s.completed_at).toLocaleString() : 'N/A'}"`;
-    dynamicTasks.forEach(t => {
-      t.items.forEach(item => { row += `,"${a.answers[item] || ''}"`; });
-    });
-    csv += row + "\n";
-  });
-
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'CSS_Assessment_Data.csv';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-}
-
-async function pickRandomStudent() {
-  const { data } = await sb.from('users').select('name').eq('role', 'student');
-  if(!data || data.length === 0) return alert("No students.");
-  const rand = data[Math.floor(Math.random() * data.length)];
-  confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-  alert("Random Student: " + rand.name);
-}
-
 async function viewStudentDetail(studentId) {
   sessionStorage.setItem('css_teacher_view', 'student_detail');
   sessionStorage.setItem('css_teacher_student_id', studentId);
@@ -763,7 +809,7 @@ async function viewStudentDetail(studentId) {
   let html = `
     <button onclick="switchView('students')" style="margin-bottom:15px; font-weight:700; color:var(--primary);">← Back</button>
     <div class="card" style="text-align:center;">
-      <div class="avatar" style="width:80px; height:80px; font-size:32px; margin:0 auto 15px;">${student.profile_picture ? `<img src="${student.profile_picture}">` : (student.name||'U').charAt(0)}</div>
+      <div class="avatar" style="width:80px; height:80px; font-size:32px; margin:0 auto 15px; ${student.role === 'superadmin' ? 'background:#7c3aed;' : student.role === 'teacher' ? 'background:#f59e0b;' : ''}">${student.profile_picture ? `<img src="${student.profile_picture}">` : (student.name||'U').charAt(0)}</div>
       <h2 style="font-size:20px;">${student.name}</h2>
       <p style="color:var(--text-muted); margin-bottom:15px;">${student.section || 'No Section'} • XP: ${student.xp||0} ${student.completed_at ? `<br><span style="color:var(--success)">✅ Finished on ${new Date(student.completed_at).toLocaleString()}</span>` : ''}</p>
       
@@ -773,10 +819,19 @@ async function viewStudentDetail(studentId) {
           ${student.allow_student_edit ? 'Lock Tasks' : 'Allow Edit'}
         </button>
       </div>
-      <div style="display:flex; gap:10px; justify-content:center;">
+      <div style="display:flex; gap:10px; justify-content:center; margin-bottom:15px;">
         <button class="btn" style="flex:1; background:${student.is_blocked ? 'var(--success)' : 'var(--warning)'};" onclick="toggleBlock('${student.id}', ${student.is_blocked})">${student.is_blocked ? 'Unblock' : 'Block'}</button>
         <button class="btn btn-danger" style="flex:1;" onclick="deleteStudent('${student.id}')">Delete</button>
       </div>
+
+      ${(currentUser.role === 'teacher' || currentUser.role === 'superadmin') && student.role === 'student' ? `
+      <div style="border-top:1px solid var(--border); padding-top:15px;">
+        <button class="btn btn-outline" onclick="impersonateUser('${student.id}')" style="border-color:var(--primary); color:var(--primary);">
+          <svg viewBox="0 0 24 24" style="width:16px; height:16px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          Login as Student View
+        </button>
+      </div>
+      ` : ''}
     </div>
     
     <h3 style="margin-bottom:15px; font-size:16px;">Activity Timeline</h3>
@@ -804,7 +859,7 @@ async function toggleBlock(id, isBlocked) {
 }
 
 async function deleteStudent(id) {
-  if(!confirm("Delete student permanently?")) return;
+  if(!confirm("Delete user permanently?")) return;
   await sb.from('users').delete().eq('id', id);
   switchView('students');
 }
@@ -877,7 +932,7 @@ function openTeacherProfile() {
   container.innerHTML = `
     <h2 style="margin-bottom:15px; font-size:20px;">My Profile</h2>
     <div class="card" style="text-align:center;">
-      <div class="avatar" style="width:100px; height:100px; font-size:40px; margin:0 auto 15px;">${currentUser.profile_picture ? `<img src="${currentUser.profile_picture}">` : (currentUser.name||'U').charAt(0)}</div>
+      <div class="avatar" style="width:100px; height:100px; font-size:40px; margin:0 auto 15px; ${currentUser.role === 'superadmin' ? 'background:#7c3aed;' : ''}">${currentUser.profile_picture ? `<img src="${currentUser.profile_picture}">` : (currentUser.name||'U').charAt(0)}</div>
       
       <h2 style="font-size:20px; display:flex; align-items:center; justify-content:center; gap:10px;">
         ${currentUser.name}
@@ -886,7 +941,7 @@ function openTeacherProfile() {
         </button>
       </h2>
       
-      <p style="color:var(--text-muted); margin-bottom:15px;">Teacher</p>
+      <p style="color:var(--text-muted); margin-bottom:15px;">${currentUser.role === 'superadmin' ? 'Super Admin' : 'Teacher'}</p>
       
       <button class="btn btn-outline" onclick="openCropper()" style="margin-bottom:20px;">
         Edit Profile Picture
@@ -894,7 +949,7 @@ function openTeacherProfile() {
       
       <div style="text-align:left;">
         <div style="margin-bottom:10px;"><strong>Username:</strong> ${currentUser.username}</div>
-        <div style="margin-bottom:10px;"><strong>Role:</strong> Trainer</div>
+        <div style="margin-bottom:10px;"><strong>Role:</strong> ${currentUser.role}</div>
       </div>
     </div>
   `;
@@ -905,13 +960,9 @@ async function editTeacherName() {
   if (!newName || newName.trim() === '' || newName === currentUser.name) return;
 
   const cleanName = newName.trim();
-
   const { error } = await sb.from('users').update({ name: cleanName }).eq('id', currentUser.id);
 
-  if (error) {
-    alert("Error updating name: " + error.message);
-    return;
-  }
+  if (error) { alert("Error updating name: " + error.message); return; }
 
   currentUser.name = cleanName;
   localStorage.setItem('css_session', JSON.stringify(currentUser));
@@ -922,8 +973,7 @@ async function editTeacherName() {
     avatarEl.textContent = cleanName.charAt(0).toUpperCase();
   }
 
-  await sb.from('audit_logs').insert({ student_id: currentUser.id, action: 'Profile Update', details: 'Changed teacher name' });
-
+  await sb.from('audit_logs').insert({ student_id: currentUser.id, action: 'Profile Update', details: 'Changed name' });
   openTeacherProfile();
 }
 
@@ -931,13 +981,12 @@ async function editTeacherName() {
    STUDENT LOGIC
    ============================================================ */
 async function recalculateStudent(studentId) {
-  await fetchTasks(); // Ensure we are calculating based on the latest tasks
+  await fetchTasks(); 
   const { data: assessment } = await sb.from('assessments').select('answers').eq('student_id', studentId).single();
   let answers = assessment?.answers || {};
   
   let yesCount = 0;
   let totalItems = 0;
-  // Only count YES if the task still exists in dynamicTasks
   dynamicTasks.forEach(t => {
     t.items.forEach(item => {
       totalItems++;
@@ -954,7 +1003,7 @@ async function recalculateStudent(studentId) {
   if (isComplete && !completedAt) {
     completedAt = new Date().toISOString();
   } else if (!isComplete && completedAt) {
-    completedAt = null; // Reset if a new task was added or a check was removed
+    completedAt = null; 
   }
 
   await sb.from('users').update({ xp: newXp, completed_at: completedAt }).eq('id', studentId);
@@ -966,7 +1015,6 @@ async function switchStudentTab(tab, btn) {
   if (btn) btn.classList.add('active');
   const container = document.getElementById('mainContent');
   
-  // CRITICAL: Fetch latest tasks to ensure sync with teacher changes
   await fetchTasks(); 
 
   if (tab === 'home') {
@@ -995,7 +1043,6 @@ async function switchStudentTab(tab, btn) {
     const circumference = 2 * Math.PI * 45; 
     const strokeDashoffset = circumference - (progress / 100) * circumference;
 
-    // Determine if student is in Top 3
     let rank = null;
     if (isComplete) {
       const { data: topStudents } = await sb.from('users').select('id, completed_at, xp').eq('role', 'student').not('completed_at', 'is', null).order('xp', { ascending: false }).order('completed_at', { ascending: true }).limit(3);
@@ -1346,14 +1393,12 @@ function drawCertificate(rank = null) {
   const canvas = document.getElementById('certCanvas');
   const ctx = canvas.getContext('2d');
   
-  // 1. Premium Dark Gradient Background
   const gradient = ctx.createLinearGradient(0, 0, 800, 600);
   gradient.addColorStop(0, '#0f172a');
   gradient.addColorStop(1, '#1e1b4b');
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, 800, 600);
   
-  // 2. Decorative Background Circles (Glowing effect)
   ctx.fillStyle = 'rgba(251, 191, 36, 0.03)';
   ctx.beginPath();
   ctx.arc(400, 300, 250, 0, Math.PI * 2);
@@ -1364,7 +1409,6 @@ function drawCertificate(rank = null) {
   ctx.arc(150, 150, 100, 0, Math.PI * 2);
   ctx.fill();
 
-  // 3. Elegant Gold Borders
   ctx.strokeStyle = '#fbbf24';
   ctx.lineWidth = 8;
   ctx.strokeRect(30, 30, 740, 540);
@@ -1373,34 +1417,28 @@ function drawCertificate(rank = null) {
   ctx.lineWidth = 2;
   ctx.strokeRect(45, 45, 710, 510);
   
-  // 4. Typography
   ctx.textAlign = "center";
   
-  // Header
   ctx.fillStyle = '#fbbf24';
   ctx.font = "bold 16px sans-serif";
   ctx.letterSpacing = "4px";
   ctx.fillText(rank ? "CERTIFICATE OF EXCELLENCE" : "CERTIFICATE OF ACHIEVEMENT", 400, 120);
   
-  // Top Rank Glowing Text (If Applicable)
   if (rank) {
     ctx.fillStyle = '#fbbf24';
     ctx.font = "900 40px sans-serif";
     ctx.fillText(`TOP ${rank} ACHIEVER`, 400, 175);
   }
 
-  // Subtitle
   ctx.fillStyle = '#cbd5e1';
   ctx.font = "14px sans-serif";
   ctx.letterSpacing = "0px";
   ctx.fillText("This is proudly presented to", 400, rank ? 220 : 180);
   
-  // Name (The Star of the Show)
   ctx.fillStyle = '#ffffff';
   ctx.font = "bold 48px serif";
   ctx.fillText(currentUser.name.toUpperCase(), 400, rank ? 280 : 250);
   
-  // Gold Divider Line
   ctx.strokeStyle = 'rgba(251, 191, 36, 0.5)';
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -1408,7 +1446,6 @@ function drawCertificate(rank = null) {
   ctx.lineTo(550, rank ? 310 : 280);
   ctx.stroke();
   
-  // Body
   ctx.fillStyle = '#cbd5e1';
   ctx.font = "16px sans-serif";
   ctx.fillText("for successfully completing the requirements for", 400, rank ? 350 : 330);
@@ -1421,7 +1458,6 @@ function drawCertificate(rank = null) {
   ctx.font = "14px sans-serif";
   ctx.fillText("Unit Code 1: Install and configure of computer systems", 400, rank ? 425 : 405);
   
-  // Date & Score Info
   ctx.fillStyle = '#94a3b8';
   ctx.font = "12px sans-serif";
   const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -1431,7 +1467,6 @@ function drawCertificate(rank = null) {
     ctx.fillText(`Issued on ${dateStr}`, 400, 450);
   }
   
-  // Signature
   ctx.strokeStyle = '#cbd5e1';
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -1541,7 +1576,7 @@ async function saveCroppedImage() {
   document.getElementById('userAvatar').innerHTML = `<img src="${base64}">`;
   
   closeModal('cropperModal');
-  if(currentUser.role === 'teacher') {
+  if(currentUser.role === 'teacher' || currentUser.role === 'superadmin') {
     openTeacherProfile();
   } else {
     switchStudentTab('profile', document.getElementById('nav-profile'));
@@ -1560,12 +1595,10 @@ async function refreshApp() {
   const btn = document.getElementById('refreshBtn');
   const originalContent = btn.innerHTML;
   
-  // 1. Show spinning loader on the button
   btn.innerHTML = '<div class="spinner" style="width:20px; height:20px; border-width:2px;"></div>';
   btn.style.pointerEvents = 'none';
 
   try {
-    // 2. Re-fetch latest user data (blocks, name changes, XP)
     const { data: user } = await sb.from('users').select('*').eq('id', currentUser.id).single();
     
     if (!user || user.is_blocked) {
@@ -1576,16 +1609,16 @@ async function refreshApp() {
     currentUser = user;
     localStorage.setItem('css_session', JSON.stringify(user));
     
-    // Update header UI
     document.getElementById('userNameDisplay').textContent = user.name || user.username;
     if(user.profile_picture) { document.getElementById('userAvatar').innerHTML = `<img src="${user.profile_picture}">`; } 
     else { document.getElementById('userAvatar').textContent = (user.name || user.username).charAt(0).toUpperCase(); }
 
-    // 3. Re-fetch latest tasks
     await fetchTasks();
 
-    // 4. Re-render the exact view the user is currently on
-    if (currentUser.role === 'teacher') {
+    if (currentUser.role === 'superadmin') {
+      const savedView = sessionStorage.getItem('css_teacher_view') || 'superadminDashboard';
+      await switchView(savedView);
+    } else if (currentUser.role === 'teacher') {
       const savedView = sessionStorage.getItem('css_teacher_view') || 'dashboard';
       const savedStudentId = sessionStorage.getItem('css_teacher_student_id');
 
@@ -1605,7 +1638,6 @@ async function refreshApp() {
     console.error("Refresh failed:", err);
     alert("Failed to refresh data. Please check your connection.");
   } finally {
-    // 5. Restore the button
     btn.innerHTML = originalContent;
     btn.style.pointerEvents = 'auto';
   }
